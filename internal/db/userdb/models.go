@@ -1,4 +1,4 @@
-package user
+package userdb
 
 import (
 	"github.com/google/uuid"

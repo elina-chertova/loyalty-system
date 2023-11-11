@@ -2,7 +2,7 @@ package db
 
 import (
 	"github.com/elina-chertova/loyalty-system/internal/config"
-	"github.com/elina-chertova/loyalty-system/internal/db/user"
+	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -14,7 +14,7 @@ func Init() *gorm.DB {
 		log.Fatalln(err)
 	}
 
-	err = db.AutoMigrate(&user.User{})
+	err = db.AutoMigrate(&userdb.User{})
 	if err != nil {
 		log.Fatalln(err)
 	}

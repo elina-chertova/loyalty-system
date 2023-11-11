@@ -4,6 +4,7 @@ import (
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/auth/service"
 	"github.com/elina-chertova/loyalty-system/internal/db"
+	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,11 +18,12 @@ func run() error {
 	router := gin.Default()
 	dbConn := db.Init()
 
-	userService := service.NewUserModel(dbConn)
+	userService := userdb.NewUserModel(dbConn)
 	authenticator := service.NewUserAuth(userService)
 	handler := handlers.NewAuthHandler(authenticator)
 
 	router.POST("/api/user/register", handler.RegisterHandler())
+	router.POST("/api/user/login", handler.LoginHandler())
 	err := router.Run()
 	if err != nil {
 		return err
