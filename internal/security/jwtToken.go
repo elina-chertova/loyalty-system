@@ -12,7 +12,7 @@ type JWTClaims struct {
 	UserID uuid.UUID
 }
 
-const TOKEN_EXP = time.Minute * 3
+const TOKEN_EXP = time.Minute * 10
 const SECRET_KEY = "supersecretkey"
 
 func GenerateToken(userID uuid.UUID) (string, error) {
@@ -51,4 +51,21 @@ func ValidateToken(signedToken string) error {
 		return config.ErrorTokenExpired
 	}
 	return nil
+}
+
+func GetUserIDFromToken(signedToken string) (uuid.UUID, error) {
+	claims := &JWTClaims{}
+	token, err := jwt.ParseWithClaims(
+		signedToken, claims, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_KEY), nil
+		},
+	)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	claims, ok := token.Claims.(*JWTClaims)
+	if !ok {
+		return uuid.Nil, config.ErrorParseClaims
+	}
+	return claims.UserID, nil
 }

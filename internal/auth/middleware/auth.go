@@ -37,6 +37,7 @@ func JWTAuth() gin.HandlerFunc {
 				return
 			}
 
+			c.Set("token", extractedToken[1])
 			c.Next()
 			return
 		}
@@ -66,6 +67,7 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
+		c.Set("token", accessTokenCookie)
 		c.Next()
 	}
 }
