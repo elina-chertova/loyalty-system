@@ -13,6 +13,8 @@ import (
 	handlersOrd "github.com/elina-chertova/loyalty-system/internal/order/handlers"
 	ordService "github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"log"
 	"time"
 )
 
@@ -26,63 +28,116 @@ func run() error {
 	router := gin.Default()
 	dbConn := db.Init()
 
-	userService := userdb.NewUserModel(dbConn)
-	orderService := orderdb.NewOrderModel(dbConn)
-	balanceService := balancedb.NewBalanceModel(dbConn)
+	model := NewModels(dbConn)
+	service := NewServices(model)
+	handler := NewHandlers(service)
 
-	authenticator := authService.NewUserAuth(userService)
-	order := ordService.NewOrder(orderService)
-	balance := balService.NewBalance(balanceService)
-
-	handlerAuth := handlersUser.NewAuthHandler(authenticator)
-	handlerOrder := handlersOrd.NewOrderHandler(order)
-	handlerBalance := handlersBal.NewBalanceHandler(balance)
-
-	router.POST("/api/user/register", handlerAuth.RegisterHandler())
-	router.POST("/api/user/login", handlerAuth.LoginHandler())
+	router.POST("/api/user/register", handler.user.RegisterHandler())
+	router.POST("/api/user/login", handler.user.LoginHandler())
 
 	router.POST(
 		"/api/user/orders/:orderNumber",
 		middleware.JWTAuth(),
-		handlerOrder.LoadOrderHandler(),
+		handler.order.LoadOrderHandler(),
 	)
 	router.GET(
 		"/api/user/orders",
 		middleware.JWTAuth(),
-		handlerOrder.GetOrdersHandler(),
+		handler.order.GetOrdersHandler(),
 	)
 
 	router.GET(
 		"/api/user/balance",
 		middleware.JWTAuth(),
-		handlerBalance.GetBalanceHandler(),
+		handler.balance.GetBalanceHandler(),
 	)
 
 	router.POST(
 		"/api/user/balance/withdraw",
 		middleware.JWTAuth(),
-		handlerBalance.RequestWithdrawFundsHandler(),
+		handler.balance.RequestWithdrawFundsHandler(),
 	)
 
 	router.GET(
 		"/api/user/withdrawals",
 		middleware.JWTAuth(),
-		handlerBalance.WithdrawalInfoHandler(),
+		handler.balance.WithdrawalInfoHandler(),
 	)
 
-	go func() {
-		for {
-			err := balance.UpdateBalance(order)
-			if err != nil {
-				return
-			}
-			time.Sleep(5 * time.Second)
-		}
-	}()
+	go updateOrderStatusLoop(service.order)
+	go updateBalanceLoop(service.order, service.balance)
 
 	err := router.Run("localhost:8081")
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+const (
+	orderUpdateInterval   = 10 * time.Second
+	balanceUpdateInterval = 5 * time.Second
+)
+
+func updateOrderStatusLoop(order *ordService.UserOrder) {
+	for {
+		err := order.UpdateOrderStatus()
+		if err != nil {
+			log.Println("Error updating order status:", err)
+		}
+		time.Sleep(orderUpdateInterval)
+	}
+}
+
+func updateBalanceLoop(order *ordService.UserOrder, balance *balService.UserBalance) {
+	for {
+		err := balance.UpdateBalance(order)
+		if err != nil {
+			log.Println("Error updating balance:", err)
+			return
+		}
+		time.Sleep(balanceUpdateInterval)
+	}
+}
+
+type models struct {
+	user    *userdb.UserModel
+	order   *orderdb.OrderModel
+	balance *balancedb.BalanceModel
+}
+
+func NewModels(conn *gorm.DB) *models {
+	return &models{
+		user:    userdb.NewUserModel(conn),
+		order:   orderdb.NewOrderModel(conn),
+		balance: balancedb.NewBalanceModel(conn),
+	}
+}
+
+type services struct {
+	user    *authService.UserAuth
+	order   *ordService.UserOrder
+	balance *balService.UserBalance
+}
+
+func NewServices(s *models) *services {
+	return &services{
+		user:    authService.NewUserAuth(s.user),
+		order:   ordService.NewOrder(s.order),
+		balance: balService.NewBalance(s.balance),
+	}
+}
+
+type handlers struct {
+	user    *handlersUser.AuthHandler
+	order   *handlersOrd.OrderHandler
+	balance *handlersBal.BalanceHandler
+}
+
+func NewHandlers(s *services) *handlers {
+	return &handlers{
+		user:    handlersUser.NewAuthHandler(s.user),
+		order:   handlersOrd.NewOrderHandler(s.order),
+		balance: handlersBal.NewBalanceHandler(s.balance),
+	}
 }

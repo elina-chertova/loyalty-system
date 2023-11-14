@@ -36,7 +36,11 @@ func (ord *UserOrder) LoadOrder(token string, orderID string) (int, error) {
 
 	if (order == orderdb.Order{}) {
 		olf, err := GetOrderInfo(orderID)
-		err = ord.OrderRep.AddOrder(orderID, userID, olf.Status, olf.Accrual)
+		status := olf.Status
+		if olf.Status == "" {
+			status = "INVALID"
+		}
+		err = ord.OrderRep.AddOrder(orderID, userID, status, olf.Accrual)
 		if err != nil {
 			return 0, fmt.Errorf("%w: %v", config.ErrorAddingOrder, err.Error())
 		}
@@ -56,7 +60,6 @@ func (ord *UserOrder) GetOrders(token string) ([]UserOrderFormat, error) {
 	}
 
 	orders, err := ord.OrderRep.GetOrderByUserID(userID)
-
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
 		return []UserOrderFormat{}, err
 	}

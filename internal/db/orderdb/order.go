@@ -24,6 +24,9 @@ type OrderRepository interface {
 	GetPreparedOrders() ([]OrderAccrual, error)
 	SetProcessedOrders(order []OrderAccrual) error
 	GetTotalAccrualByUsers() ([]UserAccrual, error)
+
+	GetUnprocessedOrders() ([]Order, error)
+	UpdateOrderStatus(orderID string, newStatus string) error
 }
 
 func (orderDB *OrderModel) AddOrder(
@@ -135,4 +138,21 @@ func getOrderIDs(orders []OrderAccrual) []string {
 		orderIDs = append(orderIDs, o.Order)
 	}
 	return orderIDs
+}
+
+func (orderDB *OrderModel) GetUnprocessedOrders() ([]Order, error) {
+	var orders []Order
+	result := orderDB.DB.Where("status IN ?", []string{"PROCESSING", "NEW"}).First(&orders)
+	if result.Error != nil {
+		return []Order{}, result.Error
+	}
+	return orders, nil
+}
+
+func (orderDB *OrderModel) UpdateOrderStatus(orderID string, newStatus string) error {
+	result := orderDB.DB.Model(&Order{}).Where("order_id = ?", orderID).Update("status", newStatus)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
