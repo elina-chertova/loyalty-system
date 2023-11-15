@@ -7,6 +7,7 @@ import (
 	"github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/elina-chertova/loyalty-system/internal/order/utils"
 	"github.com/elina-chertova/loyalty-system/internal/security"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"net/http"
 	"time"
@@ -20,6 +21,14 @@ func NewBalance(model balancedb.BalanceRepository) *UserBalance {
 	return &UserBalance{BalanceRep: model}
 }
 
+func (bal *UserBalance) AddInitialBalance(userID uuid.UUID) error {
+	err := bal.BalanceRep.AddBalance(userID, 0.0, 0.0)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) (int, error) {
 	userID, err := security.GetUserIDFromToken(token)
 	if err != nil {
@@ -31,6 +40,9 @@ func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) (int, er
 	}
 
 	balance, err := bal.BalanceRep.GetBalanceByUserID(userID)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return http.StatusUnprocessableEntity, err
+	}
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

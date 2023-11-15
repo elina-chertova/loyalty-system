@@ -118,7 +118,6 @@ func TestUserAuth_Login(t *testing.T) {
 					tt.args.login,
 					tt.args.password,
 				); err != tt.wantErr {
-					fmt.Println(err)
 					assert.Equal(
 						t,
 						err,

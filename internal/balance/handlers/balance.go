@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/balance/service"
+	"github.com/elina-chertova/loyalty-system/internal/config"
+	"github.com/elina-chertova/loyalty-system/internal/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -13,6 +17,7 @@ type BalanceService interface {
 	GetBalance(token string) (service.UserBalanceFormat, error)
 	WithdrawFunds(token, order string, sum float64) (int, error)
 	WithdrawalInfo(token string) ([]service.WithdrawalFormat, error)
+	AddInitialBalance(userID uuid.UUID) error
 }
 
 type BalanceHandler struct {
@@ -31,7 +36,7 @@ type withdraw struct {
 func respondWithJSON(c *gin.Context, statusCode int, data interface{}) {
 	result, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, "Server error")
+		respondWithError(c, http.StatusInternalServerError, "Server error", err)
 		return
 	}
 
@@ -43,7 +48,12 @@ func (balance *BalanceHandler) WithdrawalInfoHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, exists := c.Get("token")
 		if !exists {
-			respondWithError(c, http.StatusUnauthorized, "Token not found")
+			respondWithError(
+				c,
+				http.StatusUnauthorized,
+				"Token not found",
+				config.ErrorTokenNotFound,
+			)
 			return
 		}
 
@@ -55,7 +65,7 @@ func (balance *BalanceHandler) WithdrawalInfoHandler() gin.HandlerFunc {
 		}
 
 		if err != nil {
-			respondWithError(c, http.StatusInternalServerError, err.Error())
+			respondWithError(c, http.StatusInternalServerError, "Error with WithdrawalInfo", err)
 			return
 		}
 
@@ -67,14 +77,19 @@ func (balance *BalanceHandler) GetBalanceHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, exists := c.Get("token")
 		if !exists {
-			respondWithError(c, http.StatusUnauthorized, "Token not found")
+			respondWithError(
+				c,
+				http.StatusUnauthorized,
+				"Token not found",
+				config.ErrorTokenNotFound,
+			)
 			return
 		}
 
 		tokenStr := fmt.Sprintf("%v", token)
 		userBalance, err := balance.Balance.GetBalance(tokenStr)
 		if err != nil {
-			respondWithError(c, http.StatusInternalServerError, err.Error())
+			respondWithError(c, http.StatusInternalServerError, "Error with GetBalance", err)
 			return
 		}
 
@@ -86,20 +101,25 @@ func (balance *BalanceHandler) RequestWithdrawFundsHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var w withdraw
 		if err := c.BindJSON(&w); err != nil {
-			respondWithError(c, http.StatusBadRequest, "Check json input")
+			respondWithError(c, http.StatusBadRequest, "Check json input", err)
 			return
 		}
 
 		token, exists := c.Get("token")
 		if !exists {
-			respondWithError(c, http.StatusUnauthorized, "Token not found")
+			respondWithError(
+				c,
+				http.StatusUnauthorized,
+				"Token not found",
+				config.ErrorTokenNotFound,
+			)
 			return
 		}
 
 		tokenStr := fmt.Sprintf("%v", token)
 		statusCode, err := balance.Balance.WithdrawFunds(tokenStr, w.Order, w.Sum)
 		if err != nil {
-			respondWithError(c, statusCode, err.Error())
+			respondWithError(c, statusCode, "error in WithdrawFunds", err)
 			return
 		}
 
@@ -112,7 +132,12 @@ func (balance *BalanceHandler) RequestWithdrawFundsHandler() gin.HandlerFunc {
 	}
 }
 
-func respondWithError(c *gin.Context, statusCode int, message string) {
+func respondWithError(c *gin.Context, statusCode int, message string, err error) {
+	logger.Logger.Error(
+		message,
+		zap.String("endpoint", c.Request.URL.Path),
+		zap.Error(err),
+	)
 	c.AbortWithStatusJSON(
 		statusCode, handlers.Response{
 			Message: message,

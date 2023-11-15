@@ -6,6 +6,7 @@ import (
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -48,14 +49,14 @@ func (u *UserAuth) Login(login, password string) (bool, error) {
 	return isEqual, nil
 }
 
-func (u *UserAuth) SetToken(login string) (string, error) {
+func (u *UserAuth) SetToken(login string) (uuid.UUID, string, error) {
 	user, err := u.userRep.GetUserByName(login)
 	if err != nil {
-		return "", err
+		return uuid.Nil, "", err
 	}
 	token, err := security.GenerateToken(user.ID)
 	if err != nil {
-		return "", err
+		return uuid.Nil, "", err
 	}
-	return token, nil
+	return user.ID, token, nil
 }

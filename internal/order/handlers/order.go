@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/config"
+	"github.com/elina-chertova/loyalty-system/internal/logger"
 	"github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -28,6 +30,11 @@ func (order *OrderHandler) LoadOrderHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		if err := c.Request.ParseForm(); err != nil {
+			logger.Logger.Error(
+				"Parse form error",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(err),
+			)
 			c.Status(http.StatusBadRequest)
 			c.Abort()
 			return
@@ -107,6 +114,11 @@ func (order *OrderHandler) GetOrdersHandler() gin.HandlerFunc {
 func handleLoadOrderError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, config.ErrorNotValidOrderNumber):
+		logger.Logger.Error(
+			"Order number is incorrect",
+			zap.String("endpoint", c.Request.URL.Path),
+			zap.Error(err),
+		)
 		c.JSON(
 			http.StatusUnprocessableEntity, handlers.Response{
 				Message: err.Error(),
@@ -115,6 +127,11 @@ func handleLoadOrderError(c *gin.Context, err error) {
 		)
 		c.Abort()
 	case errors.Is(err, config.ErrorOrderBelongsAnotherUser):
+		logger.Logger.Error(
+			"Conflict with other user",
+			zap.String("endpoint", c.Request.URL.Path),
+			zap.Error(err),
+		)
 		c.JSON(
 			http.StatusConflict, handlers.Response{
 				Message: err.Error(),
@@ -123,6 +140,11 @@ func handleLoadOrderError(c *gin.Context, err error) {
 		)
 		c.Abort()
 	default:
+		logger.Logger.Error(
+			"Server error",
+			zap.String("endpoint", c.Request.URL.Path),
+			zap.Error(err),
+		)
 		c.AbortWithStatusJSON(
 			http.StatusInternalServerError, handlers.Response{
 				Message: err.Error(),

@@ -9,6 +9,7 @@ var (
 	ErrorPasswordCheck            = errors.New("password is wrong")
 	ErrorParseClaims              = errors.New("couldn't parse claims")
 	ErrorTokenExpired             = errors.New("token expired")
+	ErrorTokenNotFound            = errors.New("token not found")
 	ErrorDownloadingOrder         = errors.New("order cannot be created")
 	ErrorAddingOrder              = errors.New("order cannot be added")
 	ErrorOrderBelongsAnotherUser  = errors.New("order belongs to another user")

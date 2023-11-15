@@ -12,20 +12,17 @@ type JWTClaims struct {
 	UserID uuid.UUID
 }
 
-const TOKEN_EXP = time.Minute * 10
-const SECRET_KEY = "supersecretkey"
-
 func GenerateToken(userID uuid.UUID) (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256, JWTClaims{
 			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(TOKEN_EXP)),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(config.TokenExp)),
 			},
 			UserID: userID,
 		},
 	)
 
-	tokenString, err := token.SignedString([]byte(SECRET_KEY))
+	tokenString, err := token.SignedString([]byte(config.SECRET_KEY))
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +34,7 @@ func ValidateToken(signedToken string) error {
 	claims := &JWTClaims{}
 	token, err := jwt.ParseWithClaims(
 		signedToken, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(SECRET_KEY), nil
+			return []byte(config.SECRET_KEY), nil
 		},
 	)
 	if err != nil {
@@ -57,7 +54,7 @@ func GetUserIDFromToken(signedToken string) (uuid.UUID, error) {
 	claims := &JWTClaims{}
 	token, err := jwt.ParseWithClaims(
 		signedToken, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(SECRET_KEY), nil
+			return []byte(config.SECRET_KEY), nil
 		},
 	)
 	if err != nil {

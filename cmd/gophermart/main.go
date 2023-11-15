@@ -6,15 +6,18 @@ import (
 	authService "github.com/elina-chertova/loyalty-system/internal/auth/service"
 	handlersBal "github.com/elina-chertova/loyalty-system/internal/balance/handlers"
 	balService "github.com/elina-chertova/loyalty-system/internal/balance/service"
+	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db"
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
+	"github.com/elina-chertova/loyalty-system/internal/logger"
 	handlersOrd "github.com/elina-chertova/loyalty-system/internal/order/handlers"
 	ordService "github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/gin-gonic/gin"
+
+	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"log"
 	"time"
 )
 
@@ -25,12 +28,19 @@ func main() {
 }
 
 func run() error {
+	config.LoadEnv()
 	router := gin.Default()
 	dbConn := db.Init()
+	err := logger.InitLogger()
+	if err != nil {
+		panic(err)
+	}
 
 	model := NewModels(dbConn)
 	service := NewServices(model)
 	handler := NewHandlers(service)
+
+	router.Use(logger.GinLogger(logger.Logger))
 
 	router.POST("/api/user/register", handler.user.RegisterHandler())
 	router.POST("/api/user/login", handler.user.LoginHandler())
@@ -67,7 +77,7 @@ func run() error {
 	go updateOrderStatusLoop(service.order)
 	go updateBalanceLoop(service.order, service.balance)
 
-	err := router.Run("localhost:8081")
+	err = router.Run("localhost:8081")
 	if err != nil {
 		return err
 	}
@@ -83,7 +93,7 @@ func updateOrderStatusLoop(order *ordService.UserOrder) {
 	for {
 		err := order.UpdateOrderStatus()
 		if err != nil {
-			log.Println("Error updating order status:", err)
+			logger.Logger.Warn("Order status has not been updated", zap.Error(err))
 		}
 		time.Sleep(orderUpdateInterval)
 	}
@@ -93,7 +103,7 @@ func updateBalanceLoop(order *ordService.UserOrder, balance *balService.UserBala
 	for {
 		err := balance.UpdateBalance(order)
 		if err != nil {
-			log.Println("Error updating balance:", err)
+			logger.Logger.Warn("Balance has not been updated", zap.Error(err))
 			return
 		}
 		time.Sleep(balanceUpdateInterval)
@@ -136,7 +146,7 @@ type handlers struct {
 
 func NewHandlers(s *services) *handlers {
 	return &handlers{
-		user:    handlersUser.NewAuthHandler(s.user),
+		user:    handlersUser.NewAuthHandler(s.balance, s.user),
 		order:   handlersOrd.NewOrderHandler(s.order),
 		balance: handlersBal.NewBalanceHandler(s.balance),
 	}

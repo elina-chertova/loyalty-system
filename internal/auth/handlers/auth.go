@@ -1,7 +1,13 @@
 package handlers
 
 import (
+	"errors"
+	"github.com/elina-chertova/loyalty-system/internal/balance/service"
+
+	"github.com/elina-chertova/loyalty-system/internal/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
@@ -9,15 +15,16 @@ import (
 type AuthService interface {
 	Register(login, password string, isAdmin bool) error
 	Login(login, password string) (bool, error)
-	SetToken(login string) (string, error)
+	SetToken(login string) (uuid.UUID, string, error)
 }
 
 type AuthHandler struct {
-	Auth AuthService
+	balanceService *service.UserBalance
+	Auth           AuthService
 }
 
-func NewAuthHandler(userAuth AuthService) *AuthHandler {
-	return &AuthHandler{Auth: userAuth}
+func NewAuthHandler(userBal *service.UserBalance, userAuth AuthService) *AuthHandler {
+	return &AuthHandler{balanceService: userBal, Auth: userAuth}
 }
 
 type LoginForm struct {
@@ -39,6 +46,11 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var login LoginForm
 		if err := c.BindJSON(&login); err != nil {
+			logger.Logger.Error(
+				"Wrong entered data",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(err),
+			)
 			c.JSON(
 				http.StatusBadRequest, Response{
 					Message: "Check json input",
@@ -50,6 +62,11 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 		}
 
 		if len(login.Name) == 0 || len(login.Password) == 0 {
+			logger.Logger.Error(
+				"Wrong entered data",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(errors.New("login or password is empty")),
+			)
 			c.JSON(
 				http.StatusBadRequest, Response{
 					Message: "Check json input",
@@ -62,6 +79,11 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 
 		err := auth.Auth.Register(login.Name, login.Password, false)
 		if err != nil {
+			logger.Logger.Error(
+				"User is already registered",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(errors.New(err.Error())),
+			)
 			c.JSON(
 				http.StatusConflict, Response{
 					Message: err.Error(),
@@ -72,8 +94,24 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 			return
 		}
 
-		token, err := auth.Auth.SetToken(login.Name)
+		userID, token, err := auth.Auth.SetToken(login.Name)
+		err = auth.balanceService.AddInitialBalance(userID)
 		if err != nil {
+			logger.Logger.Error(
+				"Error initialize balance",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(err),
+			)
+			c.Abort()
+			return
+
+		}
+		if err != nil {
+			logger.Logger.Error(
+				"Error with getting token",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(errors.New(err.Error())),
+			)
 			c.JSON(
 				http.StatusConflict, Response{
 					Message: err.Error(),
@@ -110,6 +148,11 @@ func (auth *AuthHandler) LoginHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var login LoginForm
 		if err := c.BindJSON(&login); err != nil {
+			logger.Logger.Error(
+				"Wrong entered data",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(err),
+			)
 			c.JSON(
 				http.StatusBadRequest, Response{
 					Message: "Check json input",
@@ -120,8 +163,13 @@ func (auth *AuthHandler) LoginHandler() gin.HandlerFunc {
 			return
 		}
 
-		isEqual, err := auth.Auth.Login(login.Name, login.Password)
+		_, err := auth.Auth.Login(login.Name, login.Password)
 		if err != nil {
+			logger.Logger.Error(
+				"Login failed",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(err),
+			)
 			c.JSON(
 				http.StatusUnauthorized, Response{
 					Message: err.Error(),
@@ -131,11 +179,14 @@ func (auth *AuthHandler) LoginHandler() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		if isEqual {
 
-		}
-		token, err := auth.Auth.SetToken(login.Name)
+		_, token, err := auth.Auth.SetToken(login.Name)
 		if err != nil {
+			logger.Logger.Error(
+				"Error with getting token",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(err),
+			)
 			c.JSON(
 				http.StatusConflict, Response{
 					Message: err.Error(),
