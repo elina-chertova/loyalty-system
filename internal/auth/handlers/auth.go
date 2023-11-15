@@ -107,6 +107,17 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 		}
 
 		userID, token, err := auth.Auth.SetToken(login.Name)
+		if err != nil {
+			logger.Logger.Error(
+				"Error setting token",
+				zap.String("endpoint", c.Request.URL.Path),
+				zap.Error(err),
+			)
+			c.Abort()
+			return
+
+		}
+
 		err = auth.balanceService.AddInitialBalance(userID)
 		if err != nil {
 			logger.Logger.Error(
@@ -118,22 +129,6 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 			return
 
 		}
-		if err != nil {
-			logger.Logger.Error(
-				"Error with getting token",
-				zap.String("endpoint", c.Request.URL.Path),
-				zap.Error(errors.New(err.Error())),
-			)
-			c.JSON(
-				http.StatusConflict, Response{
-					Message: err.Error(),
-					Status:  "Error with getting token",
-				},
-			)
-			c.Abort()
-			return
-		}
-
 		expirationTime := time.Now().Add(72 * time.Hour)
 		cookie := http.Cookie{
 			Name:     "access_token",
