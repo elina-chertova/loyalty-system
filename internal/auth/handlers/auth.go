@@ -3,8 +3,8 @@ package handlers
 import (
 	"errors"
 	"github.com/elina-chertova/loyalty-system/internal/balance/service"
+	"github.com/elina-chertova/loyalty-system/pkg/logger"
 
-	"github.com/elina-chertova/loyalty-system/internal/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -42,6 +42,18 @@ type ResponseWithToken struct {
 	Token string `json:"token"`
 }
 
+// RegisterHandler @User Registration
+// @Description User Registration and creating an empty user balance
+// @ID register-user
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param login body LoginForm true "User login and password"
+// @Success 200 {object} ResponseWithToken
+// @Failure 400 {object} Response
+// @Failure 409 {object} Response
+// @Failure 500 {object} Response
+// @Router /register [post]
 func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var login LoginForm
@@ -144,6 +156,18 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 	}
 }
 
+// LoginHandler @User Login
+// @Description User Login and Set token
+// @ID login-user
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param login body LoginForm true "User login and password"
+// @Success 200 {object} ResponseWithToken
+// @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Failure 500 {object} Response
+// @Router /login [post]
 func (auth *AuthHandler) LoginHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var login LoginForm

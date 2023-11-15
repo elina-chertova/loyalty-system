@@ -146,7 +146,7 @@ func (bal *UserBalance) UpdateBalance(ord *service.UserOrder) error {
 		}
 
 		current := balance.Current + rows.SumAccrual
-		err = bal.BalanceRep.AddBalance(
+		err = bal.BalanceRep.UpdateBalance(
 			rows.UserID,
 			current,
 			balance.Withdrawn,

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/config"
-	"github.com/elina-chertova/loyalty-system/internal/logger"
 	"github.com/elina-chertova/loyalty-system/internal/order/service"
+	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
@@ -26,6 +26,21 @@ func NewOrderHandler(orderAuth OrderService) *OrderHandler {
 	return &OrderHandler{Order: orderAuth}
 }
 
+// LoadOrderHandler @Load Order Number
+// @Description Load Order Number
+// @ID load-order
+// @Tags Order
+// @Accept json
+// @Produce json
+// @Param order_id path string true "Order ID"
+// @Success 200 {object} Response
+// @Success 202 {object} Response
+// @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Failure 409 {object} Response
+// @Failure 422 {object} Response
+// @Failure 500 {object} Response
+// @Router /orders/{order_id} [post]
 func (order *OrderHandler) LoadOrderHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -63,6 +78,17 @@ func (order *OrderHandler) LoadOrderHandler() gin.HandlerFunc {
 	}
 }
 
+// GetOrdersHandler @Get User Orders
+// @Description Get User Orders
+// @ID get-orders
+// @Tags Order
+// @Accept json
+// @Produce json
+// @Success 200 {object} []service.UserOrderFormat
+// @Success 204 {object} Response
+// @Failure 401 {object} Response
+// @Failure 500 {object} Response
+// @Router /orders [get]
 func (order *OrderHandler) GetOrdersHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, exists := c.Get("token")

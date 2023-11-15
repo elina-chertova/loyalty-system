@@ -157,7 +157,7 @@ func TestUserAuth_SetToken(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				if _, err := userAuth.SetToken(tt.args.login); err != tt.wantErr {
+				if _, _, err := userAuth.SetToken(tt.args.login); err != tt.wantErr {
 					assert.Equal(t, config.ErrorCreatingUser, tt.wantErr)
 				}
 			},

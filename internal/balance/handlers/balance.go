@@ -6,7 +6,7 @@ import (
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/balance/service"
 	"github.com/elina-chertova/loyalty-system/internal/config"
-	"github.com/elina-chertova/loyalty-system/internal/logger"
+	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -33,17 +33,17 @@ type withdraw struct {
 	Sum   float64 `json:"sum"`
 }
 
-func respondWithJSON(c *gin.Context, statusCode int, data interface{}) {
-	result, err := json.MarshalIndent(data, "", "    ")
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, "Server error", err)
-		return
-	}
-
-	c.Writer.WriteHeader(statusCode)
-	c.Writer.Write(result)
-}
-
+// WithdrawalInfoHandler @Get Info About User Withdrawals
+// @Description Get Info About User Withdrawals
+// @ID withdrawal-info
+// @Tags Balance
+// @Accept json
+// @Produce json
+// @Success 200 {object} []service.WithdrawalFormat
+// @Success 204 {object} Response
+// @Failure 401 {object} Response
+// @Failure 500 {object} Response
+// @Router /withdrawals [get]
 func (balance *BalanceHandler) WithdrawalInfoHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, exists := c.Get("token")
@@ -73,6 +73,16 @@ func (balance *BalanceHandler) WithdrawalInfoHandler() gin.HandlerFunc {
 	}
 }
 
+// GetBalanceHandler @Get User Balance
+// @Description Get User Balance
+// @ID user-balance
+// @Tags Balance
+// @Accept json
+// @Produce json
+// @Success 200 {object} service.UserBalanceFormat
+// @Failure 401 {object} Response
+// @Failure 500 {object} Response
+// @Router /balance [get]
 func (balance *BalanceHandler) GetBalanceHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, exists := c.Get("token")
@@ -97,6 +107,19 @@ func (balance *BalanceHandler) GetBalanceHandler() gin.HandlerFunc {
 	}
 }
 
+// RequestWithdrawFundsHandler @Request For Funds Withdrawal
+// @Description Request For Funds Withdrawal
+// @ID funds-withdrawal
+// @Tags Balance
+// @Accept json
+// @Produce json
+// @Param withdraw body withdraw true "Withdraw order and sum"
+// @Success 200 {object} Response
+// @Failure 401 {object} Response
+// @Failure 402 {object} Response
+// @Failure 422 {object} Response
+// @Failure 500 {object} Response
+// @Router /balance/withdraw [post]
 func (balance *BalanceHandler) RequestWithdrawFundsHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var w withdraw
@@ -144,4 +167,15 @@ func respondWithError(c *gin.Context, statusCode int, message string, err error)
 			Status:  http.StatusText(statusCode),
 		},
 	)
+}
+
+func respondWithJSON(c *gin.Context, statusCode int, data interface{}) {
+	result, err := json.MarshalIndent(data, "", "    ")
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, "Server error", err)
+		return
+	}
+
+	c.Writer.WriteHeader(statusCode)
+	c.Writer.Write(result)
 }

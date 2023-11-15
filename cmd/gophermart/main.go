@@ -1,6 +1,12 @@
+// @title Loyalty System
+// @version 1.0
+// @description Loyalty System description
+// @host localhost:8081
+// @BasePath /api/user
 package main
 
 import (
+	_ "github.com/elina-chertova/loyalty-system/docs"
 	handlersUser "github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/auth/middleware"
 	authService "github.com/elina-chertova/loyalty-system/internal/auth/service"
@@ -11,10 +17,12 @@ import (
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
-	"github.com/elina-chertova/loyalty-system/internal/logger"
 	handlersOrd "github.com/elina-chertova/loyalty-system/internal/order/handlers"
 	ordService "github.com/elina-chertova/loyalty-system/internal/order/service"
+	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -41,6 +49,8 @@ func run() error {
 	handler := NewHandlers(service)
 
 	router.Use(logger.GinLogger(logger.Logger))
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.POST("/api/user/register", handler.user.RegisterHandler())
 	router.POST("/api/user/login", handler.user.LoginHandler())
