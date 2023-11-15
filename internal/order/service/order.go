@@ -20,7 +20,10 @@ func NewOrder(model orderdb.OrderRepository) *UserOrder {
 	return &UserOrder{OrderRep: model}
 }
 
-func (ord *UserOrder) LoadOrder(token string, orderID string) (int, error) {
+func (ord *UserOrder) LoadOrder(token string, orderID string, accrualServerAddress string) (
+	int,
+	error,
+) {
 	if !utils.IsLuhnValid(orderID) {
 		return 0, config.ErrorNotValidOrderNumber
 	}
@@ -35,7 +38,7 @@ func (ord *UserOrder) LoadOrder(token string, orderID string) (int, error) {
 	}
 
 	if (order == orderdb.Order{}) {
-		olf, err := GetOrderInfo(orderID)
+		olf, err := GetOrderInfo(orderID, accrualServerAddress)
 		status := olf.Status
 		if olf.Status == "" {
 			status = "INVALID"

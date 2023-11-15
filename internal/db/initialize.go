@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
@@ -10,8 +9,8 @@ import (
 	"log"
 )
 
-func Init() *gorm.DB {
-	db, err := gorm.Open(postgres.Open(config.DSN), &gorm.Config{})
+func Init(databaseDSN string) *gorm.DB {
+	db, err := gorm.Open(postgres.Open(databaseDSN), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err)
 	}

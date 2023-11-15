@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/levigross/grequests"
 	"net/http"
@@ -13,8 +14,9 @@ type OrderLoyaltyFormat struct {
 	Accrual float64 `json:"accrual,omitempty"`
 }
 
-func GetOrderInfo(orderID string) (OrderLoyaltyFormat, error) {
-	response, err := grequests.Get("http://localhost:8080/api/orders/"+orderID, nil)
+func GetOrderInfo(orderID string, accrualServerAddress string) (OrderLoyaltyFormat, error) {
+	endpoint := fmt.Sprintf(config.AccrualSystemAddress, accrualServerAddress)
+	response, err := grequests.Get(endpoint+orderID, nil)
 	if err != nil {
 		return OrderLoyaltyFormat{}, err
 	}
@@ -31,13 +33,16 @@ func GetOrderInfo(orderID string) (OrderLoyaltyFormat, error) {
 	return OrderLoyaltyFormat{}, config.ErrorGettingOrder
 }
 
-func (ord *UserOrder) UpdateOrderStatus() error {
+func (ord *UserOrder) UpdateOrderStatus(accrualServerAddress string) error {
+	endpoint := fmt.Sprintf(config.AccrualSystemAddress, accrualServerAddress)
+
 	orders, err := ord.OrderRep.GetUnprocessedOrders()
 	if err != nil {
 		return err
 	}
 	for _, order := range orders {
-		response, err := grequests.Get("http://localhost:8080/api/orders/"+order.OrderID, nil)
+
+		response, err := grequests.Get(endpoint+order.OrderID, nil)
 		if err != nil {
 			return err
 		}
