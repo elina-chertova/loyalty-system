@@ -72,7 +72,9 @@ func (m *MockBalanceRepository) GetWithdrawalByUserID(userID uuid.UUID) (
 func TestUserBalance_GetBalance(t *testing.T) {
 	uuidRight, _ := uuid.Parse("69359037-9599-48e7-b8f2-48393c019135")
 	tokenRight, err := security.GenerateToken(uuidRight)
-
+	if err != nil {
+		return
+	}
 	uuidWrong, _ := uuid.Parse("bc5b369e-2b4d-4958-8560-c8fbcc5c8188")
 	tokenWrong, err := security.GenerateToken(uuidWrong)
 	if err != nil {
