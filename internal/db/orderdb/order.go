@@ -3,7 +3,9 @@ package orderdb
 import (
 	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/config"
+	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -124,8 +126,13 @@ func (orderDB *OrderModel) GetOrderAccrual() ([]UserAccrual, error) {
 	}
 
 	userSum, err := orderDB.GetTotalAccrualByUsers()
+	if err != nil {
+		logger.Logger.Warn("Error in GetTotalAccrualByUsers", zap.Error(err))
+		return []UserAccrual{}, err
+	}
 	err = orderDB.SetProcessedOrders(order)
 	if err != nil {
+		logger.Logger.Warn("Error in SetProcessedOrders", zap.Error(err))
 		return []UserAccrual{}, err
 	}
 

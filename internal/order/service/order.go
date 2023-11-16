@@ -7,6 +7,8 @@ import (
 	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
 	"github.com/elina-chertova/loyalty-system/internal/order/utils"
 	"github.com/elina-chertova/loyalty-system/internal/security"
+	"github.com/elina-chertova/loyalty-system/pkg/logger"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"net/http"
 	"time"
@@ -39,6 +41,9 @@ func (ord *UserOrder) LoadOrder(token string, orderID string, accrualServerAddre
 
 	if (order == orderdb.Order{}) {
 		olf, err := GetOrderInfo(orderID, accrualServerAddress)
+		if err != nil {
+			logger.Logger.Error("Error in GetOrderInfo", zap.Error(err))
+		}
 		status := olf.Status
 		if olf.Status == "" {
 			status = "INVALID"

@@ -44,16 +44,12 @@ func NewOrderHandler(orderAuth OrderService) *OrderHandler {
 func (order *OrderHandler) LoadOrderHandler(accrualServerAddress string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		if err := c.Request.ParseForm(); err != nil {
-			logger.Logger.Error(
-				"Parse form error",
-				zap.String("endpoint", c.Request.URL.Path),
-				zap.Error(err),
-			)
-			c.Status(http.StatusBadRequest)
-			c.Abort()
+		var orderNumber string
+		if err := c.ShouldBind(&orderNumber); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 			return
 		}
+
 		token, exists := c.Get("token")
 		if !exists {
 			c.JSON(
@@ -65,7 +61,6 @@ func (order *OrderHandler) LoadOrderHandler(accrualServerAddress string) gin.Han
 			)
 			return
 		}
-		orderNumber := c.Param("orderNumber")
 
 		tokenStr := fmt.Sprintf("%v", token)
 		statusCode, err := order.Order.LoadOrder(tokenStr, orderNumber, accrualServerAddress)

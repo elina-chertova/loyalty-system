@@ -25,3 +25,4 @@ vendor/
 
 docker-compose.yml
 /.env
+/gophermarttest-darwin-arm64

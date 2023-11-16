@@ -58,7 +58,7 @@ func run() error {
 	router.POST("/api/user/login", handler.user.LoginHandler())
 
 	router.POST(
-		"/api/user/orders/:orderNumber",
+		"/api/user/orders",
 		middleware.JWTAuth(),
 		handler.order.LoadOrderHandler(params.AccrualSystemAddress),
 	)
