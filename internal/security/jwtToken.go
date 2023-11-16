@@ -22,7 +22,7 @@ func GenerateToken(userID uuid.UUID) (string, error) {
 		},
 	)
 
-	tokenString, err := token.SignedString([]byte(config.SECRET_KEY))
+	tokenString, err := token.SignedString([]byte(config.SecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -34,7 +34,7 @@ func ValidateToken(signedToken string) error {
 	claims := &JWTClaims{}
 	token, err := jwt.ParseWithClaims(
 		signedToken, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(config.SECRET_KEY), nil
+			return []byte(config.SecretKey), nil
 		},
 	)
 	if err != nil {
@@ -54,7 +54,7 @@ func GetUserIDFromToken(signedToken string) (uuid.UUID, error) {
 	claims := &JWTClaims{}
 	token, err := jwt.ParseWithClaims(
 		signedToken, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(config.SECRET_KEY), nil
+			return []byte(config.SecretKey), nil
 		},
 	)
 	if err != nil {

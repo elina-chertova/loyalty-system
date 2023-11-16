@@ -5,12 +5,12 @@ import (
 	"os"
 )
 
-var SECRET_KEY string
+var SecretKey string
 
 func LoadEnv() {
 	if err := godotenv.Load(); err != nil {
 		panic("Error loading .env file")
 	}
 
-	SECRET_KEY = os.Getenv("SECRET_KEY")
+	SecretKey = os.Getenv("SECRET_KEY")
 }
