@@ -1,23 +1,8 @@
 package utils
 
 import (
-	"math/rand"
 	"strconv"
-	"time"
 )
-
-func GenerateOrderNumber() string {
-	rand.Seed(time.Now().UnixNano())
-
-	firstDigit := rand.Intn(9) + 1
-	id := strconv.Itoa(firstDigit)
-
-	for i := 0; i < 14; i++ {
-		id += strconv.Itoa(rand.Intn(10))
-	}
-
-	return id
-}
 
 func IsLuhnValid(orderNumber string) bool {
 	var digits []int

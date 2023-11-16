@@ -19,10 +19,11 @@ func ParseServerFlags(s *Settings) {
 		"localhost:8081",
 		"address and port to run server Accrual System",
 	)
+
 	flag.StringVar(
 		&s.DatabaseDSN,
 		"d",
-		"postgres://app:123qwe@localhost:5432/loyalty_db",
+		"",
 		"Database DSN. Ex: postgres://app:123qwe@localhost:5432/loyalty_db",
 	)
 	flag.Parse()
