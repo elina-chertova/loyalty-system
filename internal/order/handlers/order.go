@@ -58,7 +58,7 @@ func (order *OrderHandler) LoadOrderHandler(accrualServerAddress string) gin.Han
 			)
 			return
 		}
-		fmt.Println("orderNumber", orderNumber)
+
 		tokenStr := fmt.Sprintf("%v", token)
 		statusCode, err := order.Order.LoadOrder(tokenStr, orderNumber, accrualServerAddress)
 		if err != nil {
@@ -84,6 +84,7 @@ func (order *OrderHandler) LoadOrderHandler(accrualServerAddress string) gin.Han
 func (order *OrderHandler) GetOrdersHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, exists := c.Get("token")
+		c.Writer.Header().Set("Content-Type", "application/json")
 		if !exists {
 			c.JSON(
 				http.StatusUnauthorized,
@@ -108,7 +109,6 @@ func (order *OrderHandler) GetOrdersHandler() gin.HandlerFunc {
 		}
 
 		userOrders, err := json.MarshalIndent(orders, "", "    ")
-		fmt.Println("userOrders", string(userOrders))
 		if err != nil {
 			c.AbortWithStatusJSON(
 				http.StatusInternalServerError, handlers.Response{
@@ -118,7 +118,7 @@ func (order *OrderHandler) GetOrdersHandler() gin.HandlerFunc {
 			)
 			return
 		}
-		c.Writer.Header().Set("Content-Type", "application/json")
+
 		if len(orders) == 0 {
 			c.Writer.WriteHeader(http.StatusNoContent)
 			c.Writer.Write(userOrders)

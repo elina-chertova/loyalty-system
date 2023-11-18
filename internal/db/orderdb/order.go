@@ -28,7 +28,7 @@ type OrderRepository interface {
 	GetTotalAccrualByUsers() ([]UserAccrual, error)
 
 	GetUnprocessedOrders() ([]Order, error)
-	UpdateOrderStatus(orderID string, newStatus string) error
+	UpdateOrderStatus(orderID string, newStatus string, accrual float64) error
 }
 
 func (orderDB *OrderModel) AddOrder(
@@ -156,8 +156,15 @@ func (orderDB *OrderModel) GetUnprocessedOrders() ([]Order, error) {
 	return orders, nil
 }
 
-func (orderDB *OrderModel) UpdateOrderStatus(orderID string, newStatus string) error {
-	result := orderDB.DB.Model(&Order{}).Where("order_id = ?", orderID).Update("status", newStatus)
+func (orderDB *OrderModel) UpdateOrderStatus(
+	orderID string,
+	newStatus string,
+	accrual float64,
+) error {
+	result := orderDB.DB.Model(&Order{}).Where("order_id = ?", orderID).Update(
+		"status",
+		newStatus,
+	).Update("accrual", accrual)
 	if result.Error != nil {
 		return result.Error
 	}

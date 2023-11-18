@@ -6,7 +6,6 @@
 package main
 
 import (
-	"fmt"
 	_ "github.com/elina-chertova/loyalty-system/docs"
 	handlersUser "github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/auth/middleware"
@@ -38,11 +37,8 @@ func main() {
 }
 
 func run() error {
-	fmt.Println("hello i")
 	params := config.NewServer()
-	fmt.Println("hello i i")
 	config.LoadEnv()
-	fmt.Println("hello i i")
 	dbConn := db.Init(params.DatabaseDSN)
 	err := logger.InitLogger()
 	if err != nil {
@@ -53,8 +49,6 @@ func run() error {
 	model := NewModels(dbConn)
 	service := NewServices(model)
 	handler := NewHandlers(service)
-
-	fmt.Println("jeronimo", params.AccrualSystemAddress, params.Address)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.GET("/api/user/ping", handlersDB.Ping(dbConn))
@@ -91,8 +85,14 @@ func run() error {
 		handler.balance.WithdrawalInfoHandler(),
 	)
 
-	go updateOrderStatusLoop(service.order, params.AccrualSystemAddress)
-	go updateBalanceLoop(service.order, service.balance)
+	go func() {
+		for {
+			updateOrderStatusLoop(service.order, params.AccrualSystemAddress)
+			updateBalanceLoop(service.order, service.balance)
+			time.Sleep(config.UpdateInterval)
+		}
+
+	}()
 
 	err = router.Run(params.Address)
 	if err != nil {
@@ -101,29 +101,18 @@ func run() error {
 	return nil
 }
 
-const (
-	orderUpdateInterval   = 1 * time.Second
-	balanceUpdateInterval = 1 * time.Second
-)
-
 func updateOrderStatusLoop(order *ordService.UserOrder, accrualServerAddress string) {
-	for {
-		err := order.UpdateOrderStatus(accrualServerAddress)
-		if err != nil {
-			logger.Logger.Warn("Order status has not been updated", zap.Error(err))
-		}
-		time.Sleep(orderUpdateInterval)
+	err := order.UpdateOrderStatus(accrualServerAddress)
+	if err != nil {
+		logger.Logger.Warn("Order status has not been updated", zap.Error(err))
 	}
 }
 
 func updateBalanceLoop(order *ordService.UserOrder, balance *balService.UserBalance) {
-	for {
-		err := balance.UpdateBalance(order)
-		if err != nil {
-			logger.Logger.Warn("Balance has not been updated", zap.Error(err))
-			return
-		}
-		time.Sleep(balanceUpdateInterval)
+	err := balance.UpdateBalance(order)
+	if err != nil {
+		logger.Logger.Warn("Balance has not been updated", zap.Error(err))
+		return
 	}
 }
 

@@ -38,14 +38,6 @@ func (ord *UserOrder) LoadOrder(token string, orderID string, accrualServerAddre
 	}
 
 	if (order == orderdb.Order{}) {
-		//olf, err := GetOrderInfo(orderID, accrualServerAddress)
-		//if err != nil {
-		//	logger.Logger.Error("Error in GetOrderInfo", zap.Error(err))
-		//}
-		//status := olf.Status
-		//if olf.Status == "" {
-		//	status = "INVALID"
-		//}
 		err = ord.OrderRep.AddOrder(orderID, userID, "NEW", 0.0)
 		if err != nil {
 			return 0, fmt.Errorf("%w: %v", config.ErrorAddingOrder, err.Error())

@@ -8,6 +8,7 @@ const (
 	TableOrder      = "orders"
 	Processed       = "PROCESSED"
 	TokenExp        = time.Minute * 10
+	UpdateInterval  = 1 * time.Second
 
-	AccrualSystemAddress = "http://%s/api/orders/"
+	AccrualSystemAddress = "%s/api/orders/"
 )

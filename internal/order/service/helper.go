@@ -14,25 +14,6 @@ type OrderLoyaltyFormat struct {
 	Accrual float64 `json:"accrual,omitempty"`
 }
 
-//func GetOrderInfo(orderID string, accrualServerAddress string) (OrderLoyaltyFormat, error) {
-//	endpoint := fmt.Sprintf(config.AccrualSystemAddress, accrualServerAddress)
-//	response, err := grequests.Get(endpoint+orderID, nil)
-//	if err != nil {
-//		return OrderLoyaltyFormat{}, err
-//	}
-//
-//	if response.StatusCode == http.StatusOK {
-//		var orderLoyalty OrderLoyaltyFormat
-//		err := json.Unmarshal(response.Bytes(), &orderLoyalty)
-//		if err != nil {
-//			return OrderLoyaltyFormat{}, err
-//		}
-//
-//		return orderLoyalty, nil
-//	}
-//	return OrderLoyaltyFormat{}, config.ErrorGettingOrder
-//}
-
 func (ord *UserOrder) UpdateOrderStatus(accrualServerAddress string) error {
 	endpoint := fmt.Sprintf(config.AccrualSystemAddress, accrualServerAddress)
 
@@ -41,12 +22,10 @@ func (ord *UserOrder) UpdateOrderStatus(accrualServerAddress string) error {
 		return err
 	}
 	for _, order := range orders {
-
 		response, err := grequests.Get(endpoint+order.OrderID, nil)
 		if err != nil {
 			return err
 		}
-
 		if response.StatusCode == http.StatusOK {
 			var orderLoyalty OrderLoyaltyFormat
 			err := json.Unmarshal(response.Bytes(), &orderLoyalty)
@@ -55,17 +34,21 @@ func (ord *UserOrder) UpdateOrderStatus(accrualServerAddress string) error {
 			}
 
 			if orderLoyalty.Status != "" {
-				err := ord.OrderRep.UpdateOrderStatus(orderLoyalty.Order, orderLoyalty.Status)
-				if err != nil {
-					return err
-				}
-			} else {
-				err := ord.OrderRep.UpdateOrderStatus(order.OrderID, "INVALID")
+				err := ord.OrderRep.UpdateOrderStatus(
+					orderLoyalty.Order,
+					orderLoyalty.Status,
+					orderLoyalty.Accrual,
+				)
 				if err != nil {
 					return err
 				}
 			}
 			return nil
+		} else if response.StatusCode == http.StatusNoContent {
+			err := ord.OrderRep.UpdateOrderStatus(order.OrderID, "INVALID", 0.0)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
