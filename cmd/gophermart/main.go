@@ -49,12 +49,12 @@ func run() error {
 		panic(err)
 	}
 
-	logger.Logger.Info("hello i am starting")
-
 	router := routerInit()
 	model := NewModels(dbConn)
 	service := NewServices(model)
 	handler := NewHandlers(service)
+
+	fmt.Println("jeronimo", params.AccrualSystemAddress, params.Address)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.GET("/api/user/ping", handlersDB.Ping(dbConn))

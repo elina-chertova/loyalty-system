@@ -36,7 +36,6 @@ func ParseServerFlags(s *Settings) {
 	if envDSN := os.Getenv("DATABASE_URI"); envDSN != "" {
 		s.DatabaseDSN = envDSN
 	}
-
 }
 
 func NewServer() *Settings {
