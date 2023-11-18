@@ -14,4 +14,4 @@ http://{server_host}:{server_port}/swagger/index.html
 -accrual-binary-path=cmd/accrual/accrual_darwin_arm64 \
 -accrual-host=localhost \
 -accrual-port=8081 \
--accrual-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+-accrual-database-uri="postgresql://postgres:postgres@5432/praktikum?sslmode=disable"

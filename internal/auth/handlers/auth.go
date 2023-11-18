@@ -37,11 +37,6 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-type ResponseWithToken struct {
-	Response
-	Token string `json:"token"`
-}
-
 // RegisterHandler @User Registration
 // @Description User Registration and creating an empty user balance
 // @ID register-user
@@ -49,7 +44,7 @@ type ResponseWithToken struct {
 // @Accept json
 // @Produce json
 // @Param login body LoginForm true "User login and password"
-// @Success 200 {object} ResponseWithToken
+// @Success 200 {object} Response
 // @Failure 400 {object} Response
 // @Failure 409 {object} Response
 // @Failure 500 {object} Response
@@ -139,13 +134,12 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 		}
 
 		http.SetCookie(c.Writer, &cookie)
+
+		c.Writer.Header().Set("Authorization", "Bearer "+token)
 		c.IndentedJSON(
-			http.StatusOK, ResponseWithToken{
-				Response: Response{
-					Message: "Registered",
-					Status:  "OK",
-				},
-				Token: token,
+			http.StatusOK, Response{
+				Message: "Registered",
+				Status:  "OK",
 			},
 		)
 	}
@@ -158,7 +152,7 @@ func (auth *AuthHandler) RegisterHandler() gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param login body LoginForm true "User login and password"
-// @Success 200 {object} ResponseWithToken
+// @Success 200 {object} Response
 // @Failure 400 {object} Response
 // @Failure 401 {object} Response
 // @Failure 500 {object} Response
@@ -226,13 +220,11 @@ func (auth *AuthHandler) LoginHandler() gin.HandlerFunc {
 		}
 		http.SetCookie(c.Writer, &cookie)
 
+		c.Writer.Header().Set("Authorization", "Bearer "+token)
 		c.IndentedJSON(
-			http.StatusOK, ResponseWithToken{
-				Response: Response{
-					Message: "Login success",
-					Status:  "OK",
-				},
-				Token: token,
+			http.StatusOK, Response{
+				Message: "Login success",
+				Status:  "OK",
 			},
 		)
 	}

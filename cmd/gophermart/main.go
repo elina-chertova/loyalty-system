@@ -97,8 +97,8 @@ func run() error {
 }
 
 const (
-	orderUpdateInterval   = 10 * time.Second
-	balanceUpdateInterval = 5 * time.Second
+	orderUpdateInterval   = 1 * time.Second
+	balanceUpdateInterval = 1 * time.Second
 )
 
 func updateOrderStatusLoop(order *ordService.UserOrder, accrualServerAddress string) {

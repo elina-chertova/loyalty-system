@@ -68,7 +68,7 @@ func (balance *BalanceHandler) WithdrawalInfoHandler() gin.HandlerFunc {
 			respondWithError(c, http.StatusInternalServerError, "Error with WithdrawalInfo", err)
 			return
 		}
-
+		c.Writer.Header().Set("Content-Type", "application/json")
 		respondWithJSON(c, http.StatusOK, withdrawalInfo)
 	}
 }
@@ -102,7 +102,7 @@ func (balance *BalanceHandler) GetBalanceHandler() gin.HandlerFunc {
 			respondWithError(c, http.StatusInternalServerError, "Error with GetBalance", err)
 			return
 		}
-
+		c.Writer.Header().Set("Content-Type", "application/json")
 		respondWithJSON(c, http.StatusOK, userBalance)
 	}
 }

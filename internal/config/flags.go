@@ -12,18 +12,18 @@ type Settings struct {
 }
 
 func ParseServerFlags(s *Settings) {
-	flag.StringVar(&s.Address, "a", "localhost:8080", "address and port to run server")
+	flag.StringVar(&s.Address, "a", "localhost:8081", "address and port to run server")
 	flag.StringVar(
 		&s.AccrualSystemAddress,
 		"r",
-		"localhost:8081",
+		"localhost:8080",
 		"address and port to run server Accrual System",
 	)
 
 	flag.StringVar(
 		&s.DatabaseDSN,
 		"d",
-		"",
+		"postgres://app:123qwe@localhost:5432/loyalty_db",
 		"Database DSN. Ex: postgres://app:123qwe@localhost:5432/loyalty_db",
 	)
 	flag.Parse()
