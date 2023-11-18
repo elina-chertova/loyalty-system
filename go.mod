@@ -3,6 +3,7 @@ module github.com/elina-chertova/loyalty-system
 go 1.20
 
 require (
+	github.com/Yandex-Practicum/go-autotests v0.10.2
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
