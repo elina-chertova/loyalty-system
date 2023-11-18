@@ -6,6 +6,7 @@
 package main
 
 import (
+	"fmt"
 	_ "github.com/elina-chertova/loyalty-system/docs"
 	handlersUser "github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/auth/middleware"
@@ -37,14 +38,18 @@ func main() {
 }
 
 func run() error {
+	fmt.Println("hello i")
 	params := config.NewServer()
-
+	fmt.Println("hello i i")
 	config.LoadEnv()
+	fmt.Println("hello i i")
 	dbConn := db.Init(params.DatabaseDSN)
 	err := logger.InitLogger()
 	if err != nil {
 		panic(err)
 	}
+
+	logger.Logger.Info("hello i am starting")
 
 	router := routerInit()
 	model := NewModels(dbConn)
