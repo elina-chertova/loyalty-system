@@ -14,24 +14,24 @@ type OrderLoyaltyFormat struct {
 	Accrual float64 `json:"accrual,omitempty"`
 }
 
-func GetOrderInfo(orderID string, accrualServerAddress string) (OrderLoyaltyFormat, error) {
-	endpoint := fmt.Sprintf(config.AccrualSystemAddress, accrualServerAddress)
-	response, err := grequests.Get(endpoint+orderID, nil)
-	if err != nil {
-		return OrderLoyaltyFormat{}, err
-	}
-
-	if response.StatusCode == http.StatusOK {
-		var orderLoyalty OrderLoyaltyFormat
-		err := json.Unmarshal(response.Bytes(), &orderLoyalty)
-		if err != nil {
-			return OrderLoyaltyFormat{}, err
-		}
-
-		return orderLoyalty, nil
-	}
-	return OrderLoyaltyFormat{}, config.ErrorGettingOrder
-}
+//func GetOrderInfo(orderID string, accrualServerAddress string) (OrderLoyaltyFormat, error) {
+//	endpoint := fmt.Sprintf(config.AccrualSystemAddress, accrualServerAddress)
+//	response, err := grequests.Get(endpoint+orderID, nil)
+//	if err != nil {
+//		return OrderLoyaltyFormat{}, err
+//	}
+//
+//	if response.StatusCode == http.StatusOK {
+//		var orderLoyalty OrderLoyaltyFormat
+//		err := json.Unmarshal(response.Bytes(), &orderLoyalty)
+//		if err != nil {
+//			return OrderLoyaltyFormat{}, err
+//		}
+//
+//		return orderLoyalty, nil
+//	}
+//	return OrderLoyaltyFormat{}, config.ErrorGettingOrder
+//}
 
 func (ord *UserOrder) UpdateOrderStatus(accrualServerAddress string) error {
 	endpoint := fmt.Sprintf(config.AccrualSystemAddress, accrualServerAddress)
