@@ -12,11 +12,11 @@ type Settings struct {
 }
 
 func ParseServerFlags(s *Settings) {
-	flag.StringVar(&s.Address, "a", "localhost:8080", "address and port to run server")
+	flag.StringVar(&s.Address, "a", "", "address and port to run server")
 	flag.StringVar(
 		&s.AccrualSystemAddress,
 		"r",
-		"localhost:8081",
+		"",
 		"address and port to run server Accrual System",
 	)
 
