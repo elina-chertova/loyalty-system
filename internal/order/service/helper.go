@@ -59,6 +59,11 @@ func (ord *UserOrder) UpdateOrderStatus(accrualServerAddress string) error {
 				if err != nil {
 					return err
 				}
+			} else {
+				err := ord.OrderRep.UpdateOrderStatus(order.OrderID, "INVALID")
+				if err != nil {
+					return err
+				}
 			}
 			return nil
 		}
