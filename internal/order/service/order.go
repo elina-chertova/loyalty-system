@@ -8,7 +8,6 @@ import (
 	"github.com/elina-chertova/loyalty-system/internal/order/utils"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"gorm.io/gorm"
-	"net/http"
 	"time"
 )
 
@@ -20,36 +19,42 @@ func NewOrder(model orderdb.OrderRepository) *UserOrder {
 	return &UserOrder{OrderRep: model}
 }
 
-func (ord *UserOrder) LoadOrder(token string, orderID string) (
-	int,
-	error,
-) {
+func (ord *UserOrder) LoadOrder(token string, orderID string) (*LoadOrderResult, error) {
 	if !utils.IsLuhnValid(orderID) {
-		return 0, config.ErrorNotValidOrderNumber
+		return nil, config.ErrorNotValidOrderNumber
 	}
 	userID, err := security.GetUserIDFromToken(token)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	order, err := ord.OrderRep.GetOrderByID(orderID)
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	if (order == orderdb.Order{}) {
 		err = ord.OrderRep.AddOrder(orderID, userID, "NEW", 0.0)
 		if err != nil {
-			return 0, fmt.Errorf("%w: %v", config.ErrorAddingOrder, err.Error())
+			return nil, fmt.Errorf("%w: %v", config.ErrorAddingOrder, err.Error())
 		}
-		return http.StatusAccepted, nil
+		return &LoadOrderResult{Status: StatusAccepted}, nil
 	}
 
 	if order.UserID != userID {
-		return 0, config.ErrorOrderBelongsAnotherUser
+		return nil, config.ErrorOrderBelongsAnotherUser
 	}
-	return http.StatusOK, nil
+	return &LoadOrderResult{Status: StatusOK}, nil
 }
+
+type LoadOrderResult struct {
+	Status string
+}
+
+const (
+	StatusAccepted = "Accepted"
+	StatusOK       = "OK"
+)
 
 func (ord *UserOrder) GetOrders(token string) ([]UserOrderFormat, error) {
 	userID, err := security.GetUserIDFromToken(token)

@@ -14,7 +14,7 @@ import (
 )
 
 type OrderService interface {
-	LoadOrder(token string, orderID string) (int, error)
+	LoadOrder(token string, orderID string) (*service.LoadOrderResult, error)
 	GetOrders(token string) ([]service.UserOrderFormat, error)
 }
 
@@ -60,13 +60,13 @@ func (order *OrderHandler) LoadOrderHandler() gin.HandlerFunc {
 		}
 
 		tokenStr := fmt.Sprintf("%v", token)
-		statusCode, err := order.Order.LoadOrder(tokenStr, orderNumber)
+		result, err := order.Order.LoadOrder(tokenStr, orderNumber)
 		if err != nil {
 			handleLoadOrderError(c, err)
 			return
 		}
 
-		handleLoadOrderSuccess(c, statusCode)
+		handleLoadOrderSuccess(c, result)
 	}
 }
 
@@ -179,19 +179,19 @@ func handleLoadOrderError(c *gin.Context, err error) {
 	}
 }
 
-func handleLoadOrderSuccess(c *gin.Context, statusCode int) {
+func handleLoadOrderSuccess(c *gin.Context, result *service.LoadOrderResult) {
 	var message, status string
+	var statusCode int
 
-	switch statusCode {
-	case http.StatusOK:
-		message, status = "Order is already loaded", "OK"
-	case http.StatusAccepted:
-		message, status = "Order is loaded", "OK"
+	switch result.Status {
+	case service.StatusOK:
+		message, status, statusCode = "Order is already loaded", "OK", http.StatusOK
+	case service.StatusAccepted:
+		message, status, statusCode = "Order is loaded", "OK", http.StatusAccepted
 	default:
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-
 	c.IndentedJSON(
 		statusCode, handlers.Response{
 			Message: message,
