@@ -14,7 +14,7 @@ import (
 )
 
 type OrderService interface {
-	LoadOrder(token string, orderID string, accrualServerAddress string) (int, error)
+	LoadOrder(token string, orderID string) (int, error)
 	GetOrders(token string) ([]service.UserOrderFormat, error)
 }
 
@@ -41,7 +41,7 @@ func NewOrderHandler(orderAuth OrderService) *OrderHandler {
 // @Failure 422 {object} Response
 // @Failure 500 {object} Response
 // @Router /orders [post]
-func (order *OrderHandler) LoadOrderHandler(accrualServerAddress string) gin.HandlerFunc {
+func (order *OrderHandler) LoadOrderHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var orderNumber string
 		if body, err := c.GetRawData(); err == nil {
@@ -60,7 +60,7 @@ func (order *OrderHandler) LoadOrderHandler(accrualServerAddress string) gin.Han
 		}
 
 		tokenStr := fmt.Sprintf("%v", token)
-		statusCode, err := order.Order.LoadOrder(tokenStr, orderNumber, accrualServerAddress)
+		statusCode, err := order.Order.LoadOrder(tokenStr, orderNumber)
 		if err != nil {
 			handleLoadOrderError(c, err)
 			return

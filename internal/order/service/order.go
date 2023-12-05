@@ -20,7 +20,7 @@ func NewOrder(model orderdb.OrderRepository) *UserOrder {
 	return &UserOrder{OrderRep: model}
 }
 
-func (ord *UserOrder) LoadOrder(token string, orderID string, accrualServerAddress string) (
+func (ord *UserOrder) LoadOrder(token string, orderID string) (
 	int,
 	error,
 ) {

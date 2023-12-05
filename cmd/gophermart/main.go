@@ -52,7 +52,7 @@ func run() error {
 	router.POST(
 		"/api/user/orders",
 		middleware.JWTAuth(),
-		handler.Order.LoadOrderHandler(params.AccrualSystemAddress),
+		handler.Order.LoadOrderHandler(),
 	)
 	router.GET(
 		"/api/user/orders",

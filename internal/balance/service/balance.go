@@ -32,41 +32,34 @@ func (bal *UserBalance) AddInitialBalance(userID uuid.UUID) error {
 func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) error {
 	userID, err := security.GetUserIDFromToken(token)
 	if err != nil {
-		//http.StatusInternalServerError
 		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
 	}
 
 	if !utils.IsLuhnValid(order) {
-		//http.StatusUnprocessableEntity
 		return config.ErrorNotValidOrderNumber
 	}
 
 	balance, err := bal.balanceRep.GetBalanceByUserID(userID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		//http.StatusUnprocessableEntity
 		return err
 	}
 	if err != nil {
-		//http.StatusInternalServerError
 		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
 	}
 
 	current := balance.Current - sum
 	withdrawn := balance.Withdrawn + sum
 	if current < 0 {
-		// http.StatusPaymentRequired
 		return config.ErrorInsufficientFunds
 	}
 
 	err = bal.balanceRep.AddWithdrawFunds(userID, order, sum)
 	if err != nil {
-		//http.StatusInternalServerError
 		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
 	}
 
 	err = bal.balanceRep.UpdateBalance(userID, current, withdrawn)
 	if err != nil {
-		//http.StatusInternalServerError
 		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
 	}
 
