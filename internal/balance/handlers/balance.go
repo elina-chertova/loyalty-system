@@ -9,23 +9,24 @@ import (
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"net/http"
 )
 
 type BalanceService interface {
 	GetBalance(token string) (service.UserBalanceFormat, error)
-	WithdrawFunds(token, order string, sum float64) (int, error)
+	WithdrawFunds(token, order string, sum float64) error
 	WithdrawalInfo(token string) ([]service.WithdrawalFormat, error)
 	AddInitialBalance(userID uuid.UUID) error
 }
 
 type BalanceHandler struct {
-	Balance BalanceService
+	balance BalanceService
 }
 
 func NewBalanceHandler(b BalanceService) *BalanceHandler {
-	return &BalanceHandler{Balance: b}
+	return &BalanceHandler{balance: b}
 }
 
 type withdraw struct {
@@ -58,7 +59,7 @@ func (balance *BalanceHandler) WithdrawalInfoHandler() gin.HandlerFunc {
 		}
 
 		tokenStr := fmt.Sprintf("%v", token)
-		withdrawalInfo, err := balance.Balance.WithdrawalInfo(tokenStr)
+		withdrawalInfo, err := balance.balance.WithdrawalInfo(tokenStr)
 		if len(withdrawalInfo) == 0 {
 			c.Writer.WriteHeader(http.StatusNoContent)
 			return
@@ -97,7 +98,7 @@ func (balance *BalanceHandler) GetBalanceHandler() gin.HandlerFunc {
 		}
 
 		tokenStr := fmt.Sprintf("%v", token)
-		userBalance, err := balance.Balance.GetBalance(tokenStr)
+		userBalance, err := balance.balance.GetBalance(tokenStr)
 		if err != nil {
 			respondWithError(c, http.StatusInternalServerError, "Error with GetBalance", err)
 			return
@@ -140,9 +141,26 @@ func (balance *BalanceHandler) RequestWithdrawFundsHandler() gin.HandlerFunc {
 		}
 
 		tokenStr := fmt.Sprintf("%v", token)
-		statusCode, err := balance.Balance.WithdrawFunds(tokenStr, w.Order, w.Sum)
+		err := balance.balance.WithdrawFunds(tokenStr, w.Order, w.Sum)
 		if err != nil {
-			respondWithError(c, statusCode, "error in WithdrawFunds", err)
+			if unwrappedErr := errors.Unwrap(err); unwrappedErr != nil {
+				respondWithError(
+					c,
+					http.StatusInternalServerError,
+					"error in WithdrawFunds",
+					unwrappedErr,
+				)
+				return
+			}
+
+			switch {
+			case errors.Is(err, config.ErrorNotValidOrderNumber):
+				respondWithError(c, http.StatusUnprocessableEntity, "error in WithdrawFunds", err)
+			case errors.Is(err, config.ErrorInsufficientFunds):
+				respondWithError(c, http.StatusPaymentRequired, "error in WithdrawFunds", err)
+			default:
+				respondWithError(c, http.StatusInternalServerError, "error in WithdrawFunds", err)
+			}
 			return
 		}
 
@@ -177,5 +195,8 @@ func respondWithJSON(c *gin.Context, statusCode int, data interface{}) {
 	}
 
 	c.Writer.WriteHeader(statusCode)
-	c.Writer.Write(result)
+	_, err = c.Writer.Write(result)
+	if err != nil {
+		return
+	}
 }

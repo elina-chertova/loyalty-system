@@ -121,10 +121,16 @@ func (order *OrderHandler) GetOrdersHandler() gin.HandlerFunc {
 
 		if len(orders) == 0 {
 			c.Writer.WriteHeader(http.StatusNoContent)
-			c.Writer.Write(userOrders)
+			_, err := c.Writer.Write(userOrders)
+			if err != nil {
+				return
+			}
 		} else {
 			c.Writer.WriteHeader(http.StatusOK)
-			c.Writer.Write(userOrders)
+			_, err := c.Writer.Write(userOrders)
+			if err != nil {
+				return
+			}
 		}
 
 	}

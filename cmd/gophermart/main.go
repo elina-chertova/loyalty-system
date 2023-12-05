@@ -7,18 +7,12 @@ package main
 
 import (
 	_ "github.com/elina-chertova/loyalty-system/docs"
-	handlersUser "github.com/elina-chertova/loyalty-system/internal/auth/handlers"
+	"github.com/elina-chertova/loyalty-system/internal"
 	"github.com/elina-chertova/loyalty-system/internal/auth/middleware"
-	authService "github.com/elina-chertova/loyalty-system/internal/auth/service"
-	handlersBal "github.com/elina-chertova/loyalty-system/internal/balance/handlers"
 	balService "github.com/elina-chertova/loyalty-system/internal/balance/service"
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db"
-	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	handlersDB "github.com/elina-chertova/loyalty-system/internal/db/handlers"
-	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
-	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
-	handlersOrd "github.com/elina-chertova/loyalty-system/internal/order/handlers"
 	ordService "github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-contrib/gzip"
@@ -26,7 +20,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -46,49 +39,49 @@ func run() error {
 	}
 
 	router := routerInit()
-	model := NewModels(dbConn)
-	service := NewServices(model)
-	handler := NewHandlers(service)
+	model := db.NewModels(dbConn)
+	service := internal.NewServices(model)
+	handler := internal.NewHandlers(service)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.GET("/api/user/ping", handlersDB.Ping(dbConn))
 
-	router.POST("/api/user/register", handler.user.RegisterHandler())
-	router.POST("/api/user/login", handler.user.LoginHandler())
+	router.POST("/api/user/register", handler.User.RegisterHandler())
+	router.POST("/api/user/login", handler.User.LoginHandler())
 
 	router.POST(
 		"/api/user/orders",
 		middleware.JWTAuth(),
-		handler.order.LoadOrderHandler(params.AccrualSystemAddress),
+		handler.Order.LoadOrderHandler(params.AccrualSystemAddress),
 	)
 	router.GET(
 		"/api/user/orders",
 		middleware.JWTAuth(),
-		handler.order.GetOrdersHandler(),
+		handler.Order.GetOrdersHandler(),
 	)
 
 	router.GET(
 		"/api/user/balance",
 		middleware.JWTAuth(),
-		handler.balance.GetBalanceHandler(),
+		handler.Balance.GetBalanceHandler(),
 	)
 
 	router.POST(
 		"/api/user/balance/withdraw",
 		middleware.JWTAuth(),
-		handler.balance.RequestWithdrawFundsHandler(),
+		handler.Balance.RequestWithdrawFundsHandler(),
 	)
 
 	router.GET(
 		"/api/user/withdrawals",
 		middleware.JWTAuth(),
-		handler.balance.WithdrawalInfoHandler(),
+		handler.Balance.WithdrawalInfoHandler(),
 	)
 
 	go func() {
 		for {
-			updateOrderStatusLoop(service.order, params.AccrualSystemAddress)
-			updateBalanceLoop(service.order, service.balance)
+			updateOrderStatusLoop(service.Order, params.AccrualSystemAddress)
+			updateBalanceLoop(service.Order, service.Balance)
 			time.Sleep(config.UpdateInterval)
 		}
 
@@ -121,46 +114,4 @@ func routerInit() *gin.Engine {
 	router.Use(logger.GinLogger(logger.Logger))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	return router
-}
-
-type models struct {
-	user    *userdb.UserModel
-	order   *orderdb.OrderModel
-	balance *balancedb.BalanceModel
-}
-
-func NewModels(conn *gorm.DB) *models {
-	return &models{
-		user:    userdb.NewUserModel(conn),
-		order:   orderdb.NewOrderModel(conn),
-		balance: balancedb.NewBalanceModel(conn),
-	}
-}
-
-type services struct {
-	user    *authService.UserAuth
-	order   *ordService.UserOrder
-	balance *balService.UserBalance
-}
-
-func NewServices(s *models) *services {
-	return &services{
-		user:    authService.NewUserAuth(s.user),
-		order:   ordService.NewOrder(s.order),
-		balance: balService.NewBalance(s.balance),
-	}
-}
-
-type handlers struct {
-	user    *handlersUser.AuthHandler
-	order   *handlersOrd.OrderHandler
-	balance *handlersBal.BalanceHandler
-}
-
-func NewHandlers(s *services) *handlers {
-	return &handlers{
-		user:    handlersUser.NewAuthHandler(s.balance, s.user),
-		order:   handlersOrd.NewOrderHandler(s.order),
-		balance: handlersBal.NewBalanceHandler(s.balance),
-	}
 }

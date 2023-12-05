@@ -14,7 +14,7 @@ var (
 	ErrorAddingOrder              = errors.New("order cannot be added")
 	ErrorOrderBelongsAnotherUser  = errors.New("order belongs to another user")
 	ErrorNotValidOrderNumber      = errors.New("order number is not valid")
-	ErrorGettingOrder             = errors.New("error in loyality system")
+	ErrorSystem                   = errors.New("error in loyality system")
 	ErrorDownloadingBalance       = errors.New("balance cannot be created")
 	ErrorDownloadingWithdrawFunds = errors.New("WithdrawFunds cannot be created")
 	ErrorInsufficientFunds        = errors.New("insufficient funds")

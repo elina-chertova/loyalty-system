@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/order/service"
@@ -9,63 +10,67 @@ import (
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"net/http"
 	"time"
 )
 
 type UserBalance struct {
-	BalanceRep balancedb.BalanceRepository
+	balanceRep balancedb.BalanceRepository
 }
 
 func NewBalance(model balancedb.BalanceRepository) *UserBalance {
-	return &UserBalance{BalanceRep: model}
+	return &UserBalance{balanceRep: model}
 }
 
 func (bal *UserBalance) AddInitialBalance(userID uuid.UUID) error {
-	err := bal.BalanceRep.AddBalance(userID, 0.0, 0.0)
+	err := bal.balanceRep.AddBalance(userID, 0.0, 0.0)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) (int, error) {
+func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) error {
 	userID, err := security.GetUserIDFromToken(token)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		//http.StatusInternalServerError
+		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
 	}
 
 	if !utils.IsLuhnValid(order) {
-		return http.StatusUnprocessableEntity, config.ErrorNotValidOrderNumber
+		//http.StatusUnprocessableEntity
+		return config.ErrorNotValidOrderNumber
 	}
 
-	balance, err := bal.BalanceRep.GetBalanceByUserID(userID)
+	balance, err := bal.balanceRep.GetBalanceByUserID(userID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return http.StatusUnprocessableEntity, err
+		//http.StatusUnprocessableEntity
+		return err
 	}
 	if err != nil {
-		return http.StatusInternalServerError, err
+		//http.StatusInternalServerError
+		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
 	}
 
 	current := balance.Current - sum
 	withdrawn := balance.Withdrawn + sum
 	if current < 0 {
-		return http.StatusPaymentRequired, config.ErrorInsufficientFunds
+		// http.StatusPaymentRequired
+		return config.ErrorInsufficientFunds
 	}
 
-	//orders, err := bal.balanceRep.GetOrdersWithdrawFunds()
-
-	err = bal.BalanceRep.AddWithdrawFunds(userID, order, sum)
+	err = bal.balanceRep.AddWithdrawFunds(userID, order, sum)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		//http.StatusInternalServerError
+		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
 	}
 
-	err = bal.BalanceRep.UpdateBalance(userID, current, withdrawn)
+	err = bal.balanceRep.UpdateBalance(userID, current, withdrawn)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		//http.StatusInternalServerError
+		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
 	}
 
-	return http.StatusOK, nil
+	return nil
 }
 
 func (bal *UserBalance) GetBalance(token string) (UserBalanceFormat, error) {
@@ -73,7 +78,7 @@ func (bal *UserBalance) GetBalance(token string) (UserBalanceFormat, error) {
 	if err != nil {
 		return UserBalanceFormat{}, err
 	}
-	balance, err := bal.BalanceRep.GetBalanceByUserID(userID)
+	balance, err := bal.balanceRep.GetBalanceByUserID(userID)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return UserBalanceFormat{}, nil
@@ -107,7 +112,7 @@ func (bal *UserBalance) WithdrawalInfo(token string) ([]WithdrawalFormat, error)
 	if err != nil {
 		return nil, err
 	}
-	withdrawals, err := bal.BalanceRep.GetWithdrawalByUserID(userID)
+	withdrawals, err := bal.balanceRep.GetWithdrawalByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -133,10 +138,10 @@ func (bal *UserBalance) UpdateBalance(ord *service.UserOrder) error {
 	}
 
 	for _, rows := range orderAccrual {
-		balance, err := bal.BalanceRep.GetBalanceByUserID(rows.UserID)
+		balance, err := bal.balanceRep.GetBalanceByUserID(rows.UserID)
 		switch e := err; {
 		case errors.Is(e, gorm.ErrRecordNotFound):
-			err := bal.BalanceRep.AddBalance(rows.UserID, rows.SumAccrual, 0.0)
+			err := bal.balanceRep.AddBalance(rows.UserID, rows.SumAccrual, 0.0)
 			if err != nil {
 				return err
 			}
@@ -146,7 +151,7 @@ func (bal *UserBalance) UpdateBalance(ord *service.UserOrder) error {
 		}
 
 		current := balance.Current + rows.SumAccrual
-		err = bal.BalanceRep.UpdateBalance(
+		err = bal.balanceRep.UpdateBalance(
 			rows.UserID,
 			current,
 			balance.Withdrawn,
