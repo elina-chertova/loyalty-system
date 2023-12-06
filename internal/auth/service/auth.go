@@ -37,7 +37,7 @@ func (u *UserAuth) Register(login, password string, isAdmin bool) error {
 
 	err = u.userRep.AddUser(login, pwd, isAdmin)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrorAddingUser, err.Error())
+		return fmt.Errorf("%w: %v", ErrorAddingUser, err)
 	}
 	return nil
 }
