@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"
@@ -17,17 +18,10 @@ func NewUserAuth(model userdb.UserRepository) *UserAuth {
 	return &UserAuth{userRep: model}
 }
 
-var (
-	ErrorCreatingUser  = errors.New("user cannot be created")
-	ErrorAddingUser    = errors.New("user cannot be added")
-	ErrorFindingUser   = errors.New("user not found")
-	ErrorPasswordCheck = errors.New("password is wrong")
-)
-
 func (u *UserAuth) Register(login, password string, isAdmin bool) error {
 	_, err := u.userRep.GetUserByName(login)
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return ErrorCreatingUser
+		return config.ErrorCreatingUser
 	}
 
 	pwd, err := security.HashPassword(password)
@@ -37,7 +31,7 @@ func (u *UserAuth) Register(login, password string, isAdmin bool) error {
 
 	err = u.userRep.AddUser(login, pwd, isAdmin)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrorAddingUser, err)
+		return fmt.Errorf("%w: %v", config.ErrorAddingUser, err.Error())
 	}
 	return nil
 }
@@ -45,12 +39,12 @@ func (u *UserAuth) Register(login, password string, isAdmin bool) error {
 func (u *UserAuth) Login(login, password string) (bool, error) {
 	user, err := u.userRep.GetUserByName(login)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", ErrorFindingUser, err.Error())
+		return false, fmt.Errorf("%w: %v", config.ErrorFindingUser, err.Error())
 	}
 
 	isEqual := security.CheckPasswordHash(password, user.Password)
 	if !isEqual {
-		return isEqual, ErrorPasswordCheck
+		return isEqual, config.ErrorPasswordCheck
 	}
 	return isEqual, nil
 }
