@@ -3,11 +3,12 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
 	"github.com/elina-chertova/loyalty-system/internal/order/utils"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"gorm.io/gorm"
-	"time"
 )
 
 type UserOrder struct {

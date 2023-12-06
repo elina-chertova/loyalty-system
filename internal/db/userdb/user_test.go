@@ -1,8 +1,9 @@
 package userdb
 
 import (
-	"gorm.io/gorm"
 	"testing"
+
+	"gorm.io/gorm"
 )
 
 func TestUserModel_AddUser(t *testing.T) {

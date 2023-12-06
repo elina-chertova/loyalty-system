@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/balance/service"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 type BalanceService interface {

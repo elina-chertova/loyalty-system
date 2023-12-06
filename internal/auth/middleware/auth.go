@@ -1,11 +1,12 @@
 package middleware
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strings"
 )
 
 func JWTAuth() gin.HandlerFunc {

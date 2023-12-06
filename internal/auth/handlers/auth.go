@@ -2,14 +2,16 @@ package handlers
 
 import (
 	"errors"
+
 	"github.com/elina-chertova/loyalty-system/internal/balance/service"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
+
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
 type AuthService interface {

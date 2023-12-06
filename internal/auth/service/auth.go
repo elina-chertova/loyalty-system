@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"

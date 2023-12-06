@@ -6,6 +6,8 @@
 package main
 
 import (
+	"time"
+
 	_ "github.com/elina-chertova/loyalty-system/docs"
 	"github.com/elina-chertova/loyalty-system/internal"
 	"github.com/elina-chertova/loyalty-system/internal/auth/middleware"
@@ -20,7 +22,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
-	"time"
 )
 
 func main() {

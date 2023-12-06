@@ -1,9 +1,10 @@
 package orderdb
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Order struct {

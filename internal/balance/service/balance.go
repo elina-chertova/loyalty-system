@@ -3,13 +3,14 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/elina-chertova/loyalty-system/internal/order/utils"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type UserBalance struct {

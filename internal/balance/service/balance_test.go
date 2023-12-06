@@ -3,12 +3,13 @@ package service
 import (
 	"errors"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"testing"
-	"time"
 )
 
 type MockBalanceRepository struct{}

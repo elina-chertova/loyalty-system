@@ -1,12 +1,13 @@
 package db
 
 import (
+	"log"
+
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 )
 
 func Init(databaseDSN string) *gorm.DB {

@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 // Ping @Ping database

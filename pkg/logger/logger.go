@@ -1,11 +1,12 @@
 package logger
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"net/http"
-	"time"
 )
 
 var Logger *zap.Logger = zap.NewNop()

@@ -3,6 +3,7 @@ package orderdb
 import (
 	"errors"
 	"fmt"
+
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/google/uuid"

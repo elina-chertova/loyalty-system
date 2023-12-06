@@ -3,12 +3,13 @@ package service
 import (
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"testing"
 )
 
 type MockUserRepository struct{}

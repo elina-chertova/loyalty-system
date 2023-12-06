@@ -3,6 +3,7 @@ package balancedb
 import (
 	"errors"
 	"fmt"
+
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/google/uuid"
 	"gorm.io/gorm"

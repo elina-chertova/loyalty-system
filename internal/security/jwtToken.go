@@ -2,10 +2,11 @@ package security
 
 import (
 	"errors"
+	"time"
+
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
-	"time"
 )
 
 type JWTClaims struct {

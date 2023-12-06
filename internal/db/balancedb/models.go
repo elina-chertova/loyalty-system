@@ -1,9 +1,10 @@
 package balancedb
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Balance struct {

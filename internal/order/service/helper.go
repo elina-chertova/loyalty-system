@@ -3,9 +3,10 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/levigross/grequests"
-	"net/http"
 )
 
 type OrderLoyaltyFormat struct {
