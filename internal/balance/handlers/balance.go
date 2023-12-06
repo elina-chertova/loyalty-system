@@ -29,6 +29,8 @@ func NewBalanceHandler(b BalanceService) *BalanceHandler {
 	return &BalanceHandler{balance: b}
 }
 
+var ErrorTokenNotFound = errors.New("token not found")
+
 type withdraw struct {
 	Order string  `json:"order"`
 	Sum   float64 `json:"sum"`
@@ -53,7 +55,7 @@ func (balance *BalanceHandler) WithdrawalInfoHandler() gin.HandlerFunc {
 				c,
 				http.StatusUnauthorized,
 				"Token not found",
-				config.ErrorTokenNotFound,
+				ErrorTokenNotFound,
 			)
 			return
 		}
@@ -92,7 +94,7 @@ func (balance *BalanceHandler) GetBalanceHandler() gin.HandlerFunc {
 				c,
 				http.StatusUnauthorized,
 				"Token not found",
-				config.ErrorTokenNotFound,
+				ErrorTokenNotFound,
 			)
 			return
 		}
@@ -135,7 +137,7 @@ func (balance *BalanceHandler) RequestWithdrawFundsHandler() gin.HandlerFunc {
 				c,
 				http.StatusUnauthorized,
 				"Token not found",
-				config.ErrorTokenNotFound,
+				ErrorTokenNotFound,
 			)
 			return
 		}
@@ -154,7 +156,7 @@ func (balance *BalanceHandler) RequestWithdrawFundsHandler() gin.HandlerFunc {
 			}
 
 			switch {
-			case errors.Is(err, config.ErrorNotValidOrderNumber):
+			case errors.Is(err, service.ErrorNotValidOrderNumber):
 				respondWithError(c, http.StatusUnprocessableEntity, "error in WithdrawFunds", err)
 			case errors.Is(err, config.ErrorInsufficientFunds):
 				respondWithError(c, http.StatusPaymentRequired, "error in WithdrawFunds", err)

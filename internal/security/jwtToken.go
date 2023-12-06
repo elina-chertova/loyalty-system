@@ -13,7 +13,10 @@ type JWTClaims struct {
 	UserID uuid.UUID
 }
 
-var ErrorParseClaims = errors.New("couldn't parse claims")
+var (
+	ErrorParseClaims  = errors.New("couldn't parse claims")
+	ErrorTokenExpired = errors.New("token expired")
+)
 
 func GenerateToken(userID uuid.UUID) (string, error) {
 	token := jwt.NewWithClaims(
@@ -48,7 +51,7 @@ func ValidateToken(signedToken string) error {
 		return ErrorParseClaims
 	}
 	if claims.ExpiresAt.Unix() < time.Now().Local().Unix() {
-		return config.ErrorTokenExpired
+		return ErrorTokenExpired
 	}
 	return nil
 }

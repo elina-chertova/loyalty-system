@@ -1,6 +1,7 @@
 package orderdb
 
 import (
+	"errors"
 	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
@@ -31,6 +32,8 @@ type OrderRepository interface {
 	UpdateOrderStatus(orderID string, newStatus string, accrual float64) error
 }
 
+var ErrorDownloadingOrder = errors.New("order cannot be created")
+
 func (orderDB *OrderModel) AddOrder(
 	orderID string,
 	userID uuid.UUID,
@@ -47,7 +50,7 @@ func (orderDB *OrderModel) AddOrder(
 		},
 	)
 	if result.Error != nil {
-		return fmt.Errorf("%w: %v", config.ErrorDownloadingOrder, result.Error)
+		return fmt.Errorf("%w: %v", ErrorDownloadingOrder, result.Error)
 	}
 	return nil
 }

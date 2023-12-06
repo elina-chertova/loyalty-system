@@ -19,6 +19,11 @@ func NewOrder(model orderdb.OrderRepository) *UserOrder {
 	return &UserOrder{OrderRep: model}
 }
 
+var (
+	ErrorAddingOrder             = errors.New("order cannot be added")
+	ErrorOrderBelongsAnotherUser = errors.New("order belongs to another user")
+)
+
 func (ord *UserOrder) LoadOrder(token string, orderID string) (*LoadOrderResult, error) {
 	if !utils.IsLuhnValid(orderID) {
 		return nil, config.ErrorNotValidOrderNumber
@@ -36,13 +41,13 @@ func (ord *UserOrder) LoadOrder(token string, orderID string) (*LoadOrderResult,
 	if (order == orderdb.Order{}) {
 		err = ord.OrderRep.AddOrder(orderID, userID, "NEW", 0.0)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v", config.ErrorAddingOrder, err.Error())
+			return nil, fmt.Errorf("%w: %v", ErrorAddingOrder, err.Error())
 		}
 		return &LoadOrderResult{Status: StatusAccepted}, nil
 	}
 
 	if order.UserID != userID {
-		return nil, config.ErrorOrderBelongsAnotherUser
+		return nil, ErrorOrderBelongsAnotherUser
 	}
 	return &LoadOrderResult{Status: StatusOK}, nil
 }

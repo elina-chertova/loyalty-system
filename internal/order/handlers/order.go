@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
-	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-gonic/gin"
@@ -25,6 +24,8 @@ type OrderHandler struct {
 func NewOrderHandler(orderAuth OrderService) *OrderHandler {
 	return &OrderHandler{Order: orderAuth}
 }
+
+var ErrorNotValidOrderNumber = errors.New("order number is not valid")
 
 // LoadOrderHandler @Load Order Number
 // @Description Load Order Number
@@ -138,7 +139,7 @@ func (order *OrderHandler) GetOrdersHandler() gin.HandlerFunc {
 
 func handleLoadOrderError(c *gin.Context, err error) {
 	switch {
-	case errors.Is(err, config.ErrorNotValidOrderNumber):
+	case errors.Is(err, ErrorNotValidOrderNumber):
 		logger.Logger.Error(
 			"Order number is incorrect",
 			zap.String("endpoint", c.Request.URL.Path),
@@ -151,7 +152,7 @@ func handleLoadOrderError(c *gin.Context, err error) {
 			},
 		)
 		c.Abort()
-	case errors.Is(err, config.ErrorOrderBelongsAnotherUser):
+	case errors.Is(err, service.ErrorOrderBelongsAnotherUser):
 		logger.Logger.Error(
 			"Conflict with other user",
 			zap.String("endpoint", c.Request.URL.Path),

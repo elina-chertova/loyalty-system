@@ -21,6 +21,11 @@ func NewBalance(model balancedb.BalanceRepository) *UserBalance {
 	return &UserBalance{balanceRep: model}
 }
 
+var (
+	ErrorNotValidOrderNumber = errors.New("order number is not valid")
+	ErrorSystem              = errors.New("error in loyality system")
+)
+
 func (bal *UserBalance) AddInitialBalance(userID uuid.UUID) error {
 	err := bal.balanceRep.AddBalance(userID, 0.0, 0.0)
 	if err != nil {
@@ -32,11 +37,11 @@ func (bal *UserBalance) AddInitialBalance(userID uuid.UUID) error {
 func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) error {
 	userID, err := security.GetUserIDFromToken(token)
 	if err != nil {
-		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
+		return fmt.Errorf("%w; %v", ErrorSystem, err)
 	}
 
 	if !utils.IsLuhnValid(order) {
-		return config.ErrorNotValidOrderNumber
+		return ErrorNotValidOrderNumber
 	}
 
 	balance, err := bal.balanceRep.GetBalanceByUserID(userID)
@@ -44,7 +49,7 @@ func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) error {
 		return err
 	}
 	if err != nil {
-		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
+		return fmt.Errorf("%w; %v", ErrorSystem, err)
 	}
 
 	current := balance.Current - sum
@@ -55,12 +60,12 @@ func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) error {
 
 	err = bal.balanceRep.AddWithdrawFunds(userID, order, sum)
 	if err != nil {
-		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
+		return fmt.Errorf("%w; %v", ErrorSystem, err)
 	}
 
 	err = bal.balanceRep.UpdateBalance(userID, current, withdrawn)
 	if err != nil {
-		return fmt.Errorf("%w; %v", config.ErrorSystem, err)
+		return fmt.Errorf("%w; %v", ErrorSystem, err)
 	}
 
 	return nil
