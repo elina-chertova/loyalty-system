@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"
@@ -57,7 +58,7 @@ func TestUserAuth_Register(t *testing.T) {
 		{
 			name:    "User are exists",
 			args:    args{login: "existingUser", password: "hashedPassword", isAdmin: false},
-			wantErr: ErrorCreatingUser,
+			wantErr: config.ErrorCreatingUser,
 		},
 	}
 
@@ -93,7 +94,7 @@ func TestUserAuth_Login(t *testing.T) {
 		{
 			name:    "User are login",
 			args:    args{login: "name", password: "password"},
-			wantErr: fmt.Errorf("%w: %v", ErrorFindingUser, gorm.ErrRecordNotFound),
+			wantErr: fmt.Errorf("%w: %v", config.ErrorFindingUser, gorm.ErrRecordNotFound),
 		},
 		{
 			name:    "User are exists",
@@ -103,7 +104,7 @@ func TestUserAuth_Login(t *testing.T) {
 		{
 			name:    "Password is wrong",
 			args:    args{login: "existingUser", password: "hashedPassword123"},
-			wantErr: ErrorPasswordCheck,
+			wantErr: config.ErrorPasswordCheck,
 		},
 	}
 
@@ -146,7 +147,7 @@ func TestUserAuth_SetToken(t *testing.T) {
 		{
 			name:    "User are exists",
 			args:    args{login: "existingUser"},
-			wantErr: ErrorCreatingUser,
+			wantErr: config.ErrorCreatingUser,
 		},
 	}
 
@@ -157,7 +158,7 @@ func TestUserAuth_SetToken(t *testing.T) {
 		t.Run(
 			tt.name, func(t *testing.T) {
 				if _, _, err := userAuth.SetToken(tt.args.login); err != tt.wantErr {
-					assert.Equal(t, ErrorCreatingUser, tt.wantErr)
+					assert.Equal(t, config.ErrorCreatingUser, tt.wantErr)
 				}
 			},
 		)
