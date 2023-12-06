@@ -1,6 +1,7 @@
 package security
 
 import (
+	"errors"
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
@@ -11,6 +12,8 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 	UserID uuid.UUID
 }
+
+var ErrorParseClaims = errors.New("couldn't parse claims")
 
 func GenerateToken(userID uuid.UUID) (string, error) {
 	token := jwt.NewWithClaims(
@@ -42,7 +45,7 @@ func ValidateToken(signedToken string) error {
 	}
 	claims, ok := token.Claims.(*JWTClaims)
 	if !ok {
-		return config.ErrorParseClaims
+		return ErrorParseClaims
 	}
 	if claims.ExpiresAt.Unix() < time.Now().Local().Unix() {
 		return config.ErrorTokenExpired
@@ -62,7 +65,7 @@ func GetUserIDFromToken(signedToken string) (uuid.UUID, error) {
 	}
 	claims, ok := token.Claims.(*JWTClaims)
 	if !ok {
-		return uuid.Nil, config.ErrorParseClaims
+		return uuid.Nil, ErrorParseClaims
 	}
 	return claims.UserID, nil
 }

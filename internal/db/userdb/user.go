@@ -1,8 +1,8 @@
 package userdb
 
 import (
+	"errors"
 	"fmt"
-	"github.com/elina-chertova/loyalty-system/internal/config"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +22,7 @@ type UserRepository interface {
 func (userDB *UserModel) AddUser(name, password string, isAdmin bool) error {
 	result := userDB.DB.Create(&User{Name: name, Password: password, IsAdmin: isAdmin})
 	if result.Error != nil {
-		return fmt.Errorf("%w: %v", config.ErrorCreatingUser, result.Error)
+		return fmt.Errorf("%w: %v", errors.New("error during creating user"), result.Error)
 	}
 	return nil
 }
