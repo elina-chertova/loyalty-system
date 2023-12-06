@@ -25,8 +25,6 @@ func NewOrderHandler(orderAuth OrderService) *OrderHandler {
 	return &OrderHandler{Order: orderAuth}
 }
 
-var ErrorNotValidOrderNumber = errors.New("order number is not valid")
-
 // LoadOrderHandler @Load Order Number
 // @Description Load Order Number
 // @ID load-order
@@ -139,7 +137,7 @@ func (order *OrderHandler) GetOrdersHandler() gin.HandlerFunc {
 
 func handleLoadOrderError(c *gin.Context, err error) {
 	switch {
-	case errors.Is(err, ErrorNotValidOrderNumber):
+	case errors.Is(err, service.ErrorNotValidOrderNumber):
 		logger.Logger.Error(
 			"Order number is incorrect",
 			zap.String("endpoint", c.Request.URL.Path),

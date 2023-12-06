@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
 	"github.com/elina-chertova/loyalty-system/internal/order/utils"
 	"github.com/elina-chertova/loyalty-system/internal/security"
@@ -22,11 +21,12 @@ func NewOrder(model orderdb.OrderRepository) *UserOrder {
 var (
 	ErrorAddingOrder             = errors.New("order cannot be added")
 	ErrorOrderBelongsAnotherUser = errors.New("order belongs to another user")
+	ErrorNotValidOrderNumber     = errors.New("order number is not valid")
 )
 
 func (ord *UserOrder) LoadOrder(token string, orderID string) (*LoadOrderResult, error) {
 	if !utils.IsLuhnValid(orderID) {
-		return nil, config.ErrorNotValidOrderNumber
+		return nil, ErrorNotValidOrderNumber
 	}
 	userID, err := security.GetUserIDFromToken(token)
 	if err != nil {
