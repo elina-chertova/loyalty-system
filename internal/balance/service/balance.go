@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/elina-chertova/loyalty-system/internal/order/utils"
@@ -24,6 +23,7 @@ func NewBalance(model balancedb.BalanceRepository) *UserBalance {
 var (
 	ErrorNotValidOrderNumber = errors.New("order number is not valid")
 	ErrorSystem              = errors.New("error in loyality system")
+	ErrorInsufficientFunds   = errors.New("insufficient funds")
 )
 
 func (bal *UserBalance) AddInitialBalance(userID uuid.UUID) error {
@@ -55,7 +55,7 @@ func (bal *UserBalance) WithdrawFunds(token, order string, sum float64) error {
 	current := balance.Current - sum
 	withdrawn := balance.Withdrawn + sum
 	if current < 0 {
-		return config.ErrorInsufficientFunds
+		return ErrorInsufficientFunds
 	}
 
 	err = bal.balanceRep.AddWithdrawFunds(userID, order, sum)

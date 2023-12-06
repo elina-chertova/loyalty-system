@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/auth/handlers"
 	"github.com/elina-chertova/loyalty-system/internal/balance/service"
-	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -158,7 +157,7 @@ func (balance *BalanceHandler) RequestWithdrawFundsHandler() gin.HandlerFunc {
 			switch {
 			case errors.Is(err, service.ErrorNotValidOrderNumber):
 				respondWithError(c, http.StatusUnprocessableEntity, "error in WithdrawFunds", err)
-			case errors.Is(err, config.ErrorInsufficientFunds):
+			case errors.Is(err, service.ErrorInsufficientFunds):
 				respondWithError(c, http.StatusPaymentRequired, "error in WithdrawFunds", err)
 			default:
 				respondWithError(c, http.StatusInternalServerError, "error in WithdrawFunds", err)

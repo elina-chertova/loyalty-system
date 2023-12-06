@@ -1,6 +1,7 @@
 package balancedb
 
 import (
+	"errors"
 	"fmt"
 	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/google/uuid"
@@ -24,6 +25,11 @@ type BalanceRepository interface {
 	GetOrdersWithdrawFunds() ([]string, error)
 	GetWithdrawalByUserID(userID uuid.UUID) ([]Withdrawal, error)
 }
+
+var (
+	ErrorDownloadingBalance       = errors.New("balance cannot be created")
+	ErrorDownloadingWithdrawFunds = errors.New("WithdrawFunds cannot be created")
+)
 
 func (balanceDB *BalanceModel) UpdateBalance(userID uuid.UUID, current, withdrawn float64) error {
 	updateResult := balanceDB.DB.Table(config.TableBalance).Where("user_id = ?", userID).
@@ -52,7 +58,7 @@ func (balanceDB *BalanceModel) AddBalance(
 		},
 	)
 	if result.Error != nil {
-		return fmt.Errorf("%w: %v", config.ErrorDownloadingBalance, result.Error)
+		return fmt.Errorf("%w: %v", ErrorDownloadingBalance, result.Error)
 	}
 	return nil
 }
@@ -79,7 +85,7 @@ func (balanceDB *BalanceModel) AddWithdrawFunds(
 		},
 	)
 	if result.Error != nil {
-		return fmt.Errorf("%w: %v", config.ErrorDownloadingWithdrawFunds, result.Error)
+		return fmt.Errorf("%w: %v", ErrorDownloadingWithdrawFunds, result.Error)
 	}
 	return nil
 }

@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/elina-chertova/loyalty-system/internal/config"
 	"github.com/elina-chertova/loyalty-system/internal/db/balancedb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"
@@ -14,6 +13,11 @@ import (
 
 type MockBalanceRepository struct{}
 
+var (
+	ErrorDownloadingBalance       = errors.New("balance cannot be created")
+	ErrorDownloadingWithdrawFunds = errors.New("WithdrawFunds cannot be created")
+)
+
 func (m *MockBalanceRepository) AddBalance(
 	userID uuid.UUID,
 	current float64,
@@ -21,7 +25,7 @@ func (m *MockBalanceRepository) AddBalance(
 ) error {
 	uuidIDTest, _ := uuid.Parse("69359037-9599-48e7-b8f2-48393c019135")
 	if userID == uuidIDTest {
-		return fmt.Errorf("%w: %v", config.ErrorDownloadingBalance, gorm.ErrRecordNotFound)
+		return fmt.Errorf("%w: %v", ErrorDownloadingBalance, gorm.ErrRecordNotFound)
 	}
 	return nil
 }
@@ -33,7 +37,7 @@ func (m *MockBalanceRepository) AddWithdrawFunds(
 ) error {
 	uuidIDTest, _ := uuid.Parse("69359037-9599-48e7-b8f2-48393c019135")
 	if userID == uuidIDTest {
-		return fmt.Errorf("%w: %v", config.ErrorDownloadingWithdrawFunds, gorm.ErrRecordNotFound)
+		return fmt.Errorf("%w: %v", ErrorDownloadingWithdrawFunds, gorm.ErrRecordNotFound)
 	}
 	return nil
 }
