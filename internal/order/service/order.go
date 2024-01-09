@@ -73,8 +73,8 @@ func (ord *UserOrder) GetOrders(token string) ([]UserOrderFormat, error) {
 		return []UserOrderFormat{}, err
 	}
 
-	var newOrders []UserOrderFormat
-
+	//var newOrders []UserOrderFormat
+	newOrders := make([]UserOrderFormat, 0, len(orders))
 	for _, originalOrder := range orders {
 		reducedOrder := ConvertToUserOrderFormat(originalOrder)
 		newOrders = append(newOrders, *reducedOrder)

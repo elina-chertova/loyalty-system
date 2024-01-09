@@ -3,7 +3,10 @@ package service
 import (
 	"errors"
 	"fmt"
+	"math/rand"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/elina-chertova/loyalty-system/internal/db/userdb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
@@ -36,6 +39,50 @@ func (m *MockUserRepository) AddUser(login, password string, isAdmin bool) error
 		return errors.New("user already exists")
 	}
 	return nil
+}
+
+func BenchmarkUserAuth_Register(b *testing.B) {
+	rand.Seed(time.Now().UnixNano())
+
+	rep := &MockUserRepository{}
+	userAuth := NewUserAuth(rep)
+	cnt := 20
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		ind := strconv.Itoa(cnt)
+		cnt -= 1
+		b.StartTimer()
+		_ = userAuth.Register(
+			"log"+ind,
+			"pass"+ind,
+			false,
+		)
+	}
+}
+
+func BenchmarkUserAuth_Login(b *testing.B) {
+	rep := &MockUserRepository{}
+	userAuth := NewUserAuth(rep)
+
+	login := "existingUser"
+	password := "hashedPassword"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = userAuth.Login(login, password)
+	}
+}
+
+func BenchmarkUserAuth_SetToken(b *testing.B) {
+	rep := &MockUserRepository{}
+	userAuth := NewUserAuth(rep)
+
+	login := "existingUser"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, _ = userAuth.SetToken(login)
+	}
 }
 
 func TestUserAuth_Register(t *testing.T) {
