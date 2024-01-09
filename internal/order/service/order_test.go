@@ -2,11 +2,12 @@ package service
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/elina-chertova/loyalty-system/internal/db/orderdb"
 	"github.com/elina-chertova/loyalty-system/internal/security"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"testing"
 )
 
 type MockOrderRepository struct {

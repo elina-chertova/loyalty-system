@@ -11,6 +11,15 @@ import (
 	"runtime"
 	"time"
 
+	p "net/http/pprof"
+	"runtime/pprof"
+
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.uber.org/zap"
+
 	_ "github.com/elina-chertova/loyalty-system/docs"
 	"github.com/elina-chertova/loyalty-system/internal"
 	"github.com/elina-chertova/loyalty-system/internal/auth/middleware"
@@ -20,13 +29,6 @@ import (
 	handlersDB "github.com/elina-chertova/loyalty-system/internal/db/handlers"
 	ordService "github.com/elina-chertova/loyalty-system/internal/order/service"
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"go.uber.org/zap"
-	p "net/http/pprof"
-	"runtime/pprof"
 )
 
 func main() {

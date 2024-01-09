@@ -42,19 +42,20 @@ func (m *MockUserRepository) AddUser(login, password string, isAdmin bool) error
 }
 
 func BenchmarkUserAuth_Register(b *testing.B) {
-	rand.Seed(time.Now().UnixNano())
-
+	s := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(s)
 	rep := &MockUserRepository{}
 	userAuth := NewUserAuth(rep)
-	cnt := 20
+
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		ind := strconv.Itoa(cnt)
-		cnt -= 1
+		n := r.Intn(100)
+		logSuffix := strconv.Itoa(n)
+		passSuffix := strconv.Itoa(n)
 		b.StartTimer()
 		_ = userAuth.Register(
-			"log"+ind,
-			"pass"+ind,
+			"log"+logSuffix,
+			"pass"+passSuffix,
 			false,
 		)
 	}
