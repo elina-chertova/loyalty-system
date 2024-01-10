@@ -1,3 +1,5 @@
+// Package middleware provides middlewares for handling authentication
+// and other cross-cutting concerns in the loyalty system.
 package middleware
 
 import (
@@ -9,6 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// JWTAuth is a middleware function for the Gin framework that handles
+// JWT token validation. It checks for the presence of a JWT token either
+// in the Authorization header or as a cookie named "access_token".
+// If the token is valid, it allows the request to proceed; otherwise,
+// it returns an unauthorized status.
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessTokenBearer := c.GetHeader("Authorization")

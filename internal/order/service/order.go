@@ -1,3 +1,5 @@
+// Package service provides functionalities for managing user orders
+// in the loyalty system.
 package service
 
 import (
@@ -11,20 +13,26 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserOrder struct handles operations related to user orders.
 type UserOrder struct {
 	OrderRep orderdb.OrderRepository
 }
 
+// NewOrder creates a new instance of UserOrder with the given OrderRepository.
 func NewOrder(model orderdb.OrderRepository) *UserOrder {
 	return &UserOrder{OrderRep: model}
 }
 
+// Predefined errors for order operations.
 var (
 	ErrorAddingOrder             = errors.New("order cannot be added")
 	ErrorOrderBelongsAnotherUser = errors.New("order belongs to another user")
 	ErrorNotValidOrderNumber     = errors.New("order number is not valid")
 )
 
+// LoadOrder handles the loading of an order. It checks the validity of the
+// order number, associates it with a user, and updates the order status.
+// It returns a LoadOrderResult indicating the outcome.
 func (ord *UserOrder) LoadOrder(token string, orderID string) (*LoadOrderResult, error) {
 	if !utils.IsLuhnValid(orderID) {
 		return nil, ErrorNotValidOrderNumber
@@ -53,15 +61,20 @@ func (ord *UserOrder) LoadOrder(token string, orderID string) (*LoadOrderResult,
 	return &LoadOrderResult{Status: StatusOK}, nil
 }
 
+// LoadOrderResult represents the status of an order after attempting to load it.
 type LoadOrderResult struct {
 	Status string
 }
 
+// StatusAccepted and StatusOK are constants representing the possible states
+// of an order after being processed by LoadOrder.
 const (
 	StatusAccepted = "Accepted"
 	StatusOK       = "OK"
 )
 
+// GetOrders retrieves the orders associated with a user token. It returns a
+// slice of UserOrderFormat with details of each order.
 func (ord *UserOrder) GetOrders(token string) ([]UserOrderFormat, error) {
 	userID, err := security.GetUserIDFromToken(token)
 	if err != nil {
@@ -73,7 +86,6 @@ func (ord *UserOrder) GetOrders(token string) ([]UserOrderFormat, error) {
 		return []UserOrderFormat{}, err
 	}
 
-	//var newOrders []UserOrderFormat
 	newOrders := make([]UserOrderFormat, 0, len(orders))
 	for _, originalOrder := range orders {
 		reducedOrder := ConvertToUserOrderFormat(originalOrder)
@@ -82,6 +94,7 @@ func (ord *UserOrder) GetOrders(token string) ([]UserOrderFormat, error) {
 	return newOrders, nil
 }
 
+// UserOrderFormat defines the format for representing user orders.
 type UserOrderFormat struct {
 	Number     string    `json:"number"`
 	Status     string    `json:"status"`
@@ -89,6 +102,8 @@ type UserOrderFormat struct {
 	UploadedAt time.Time `json:"uploaded_at"`
 }
 
+// ConvertToUserOrderFormat converts an orderdb.Order to UserOrderFormat
+// for external representation.
 func ConvertToUserOrderFormat(originalOrder orderdb.Order) *UserOrderFormat {
 	if originalOrder.Accrual == 0 {
 		return &UserOrderFormat{

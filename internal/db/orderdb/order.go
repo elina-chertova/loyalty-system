@@ -1,3 +1,5 @@
+// Package orderdb provides data access functionalities for order management
+// in the loyalty system. It uses GORM for database operations related to orders.
 package orderdb
 
 import (
@@ -11,14 +13,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// OrderModel represents the model for order data and provides methods
+// for interacting with the orders table in the database.
 type OrderModel struct {
 	DB *gorm.DB
 }
 
+// NewOrderModel creates a new instance of OrderModel with the given GORM DB instance.
 func NewOrderModel(db *gorm.DB) *OrderModel {
 	return &OrderModel{DB: db}
 }
 
+// OrderRepository defines the interface for order data operations. It abstracts
+// the methods to interact with the orders in the database.
 type OrderRepository interface {
 	AddOrder(string, uuid.UUID, string, float64) error
 	GetOrderByID(string) (Order, error)
@@ -33,8 +40,11 @@ type OrderRepository interface {
 	UpdateOrderStatus(orderID string, newStatus string, accrual float64) error
 }
 
+// ErrorDownloadingOrder represents an error encountered while creating an order.
 var ErrorDownloadingOrder = errors.New("order cannot be created")
 
+// AddOrder adds a new order to the database with the provided details.
+// Returns an error if the order cannot be created.
 func (orderDB *OrderModel) AddOrder(
 	orderID string,
 	userID uuid.UUID,
@@ -56,6 +66,8 @@ func (orderDB *OrderModel) AddOrder(
 	return nil
 }
 
+// GetOrderByID retrieves an order by its ID from the database.
+// Returns the Order object and an error if the order is not found.
 func (orderDB *OrderModel) GetOrderByID(orderID string) (Order, error) {
 	var order Order
 	result := orderDB.DB.Where(&Order{OrderID: orderID}).First(&order)
@@ -65,6 +77,8 @@ func (orderDB *OrderModel) GetOrderByID(orderID string) (Order, error) {
 	return order, nil
 }
 
+// GetOrderByUserID retrieves an order by user ID from the database.
+// Returns the Order object and an error if the order is not found.
 func (orderDB *OrderModel) GetOrderByUserID(userID uuid.UUID) ([]Order, error) {
 	var orders []Order
 	result := orderDB.DB.Order("updated_at desc").Where(&Order{UserID: userID}).Find(&orders)
@@ -74,17 +88,21 @@ func (orderDB *OrderModel) GetOrderByUserID(userID uuid.UUID) ([]Order, error) {
 	return orders, nil
 }
 
+// OrderAccrual represents the accrual data associated with an order.
 type OrderAccrual struct {
 	UserID     uuid.UUID `gorm:"column:user_id"`
 	Order      string    `gorm:"column:order_id"`
 	SumAccrual float64   `gorm:"column:accrual"`
 }
 
+// UserAccrual represents the total accrual for a user.
 type UserAccrual struct {
 	UserID     uuid.UUID `gorm:"column:user_id"`
 	SumAccrual float64   `gorm:"column:total_accrual"`
 }
 
+// GetPreparedOrders retrieves prepared orders.
+// Returns the OrderAccrual object and an error if the order is not found.
 func (orderDB *OrderModel) GetPreparedOrders() ([]OrderAccrual, error) {
 	var order []OrderAccrual
 
@@ -99,6 +117,8 @@ func (orderDB *OrderModel) GetPreparedOrders() ([]OrderAccrual, error) {
 	return order, nil
 }
 
+// GetTotalAccrualByUsers retrieves total accrual.
+// Returns the UserAccrual object and an error if the rows are not found.
 func (orderDB *OrderModel) GetTotalAccrualByUsers() ([]UserAccrual, error) {
 	var userSum []UserAccrual
 	resultUserAccrual := orderDB.DB.Table(config.TableOrder).Select("user_id, SUM(accrual) as total_accrual").Where(
@@ -112,6 +132,10 @@ func (orderDB *OrderModel) GetTotalAccrualByUsers() ([]UserAccrual, error) {
 	return userSum, nil
 }
 
+// SetProcessedOrders marks a batch of orders as processed in the database.
+// order: A slice of OrderAccrual representing the orders to be marked as processed.
+// The method updates the 'credited' field of each specified order to 'true'.
+// Returns an error if the update operation fails.
 func (orderDB *OrderModel) SetProcessedOrders(order []OrderAccrual) error {
 	updateResult := orderDB.DB.Table(config.TableOrder).
 		Where("order_id IN ? AND status = ?", getOrderIDs(order), config.Processed).
@@ -123,6 +147,10 @@ func (orderDB *OrderModel) SetProcessedOrders(order []OrderAccrual) error {
 	return nil
 }
 
+// GetOrderAccrual retrieves accrual information for each user based on their orders.
+// It first fetches prepared orders, then calculates total accruals by users,
+// and finally marks the processed orders as credited.
+// Returns a slice of UserAccrual containing accrual information for each user, or an error.
 func (orderDB *OrderModel) GetOrderAccrual() ([]UserAccrual, error) {
 	order, err := orderDB.GetPreparedOrders()
 	if err != nil {
@@ -143,6 +171,8 @@ func (orderDB *OrderModel) GetOrderAccrual() ([]UserAccrual, error) {
 	return userSum, nil
 }
 
+// getOrderIDs extracts and returns a slice of order IDs from a slice of OrderAccrual.
+// orders: A slice of OrderAccrual from which the order IDs are to be extracted.
 func getOrderIDs(orders []OrderAccrual) []string {
 	var orderIDs []string
 	for _, o := range orders {
@@ -151,6 +181,8 @@ func getOrderIDs(orders []OrderAccrual) []string {
 	return orderIDs
 }
 
+// GetUnprocessedOrders fetches orders that are either in 'PROCESSING' or 'NEW' status.
+// Returns a slice of Order objects representing unprocessed orders, or an error if the fetch fails.
 func (orderDB *OrderModel) GetUnprocessedOrders() ([]Order, error) {
 	var orders []Order
 	result := orderDB.DB.Where("status IN ?", []string{"PROCESSING", "NEW"}).First(&orders)
@@ -160,6 +192,11 @@ func (orderDB *OrderModel) GetUnprocessedOrders() ([]Order, error) {
 	return orders, nil
 }
 
+// UpdateOrderStatus updates the status and accrual of an order identified by orderID.
+// orderID: Identifier of the order to be updated.
+// newStatus: New status to be set for the order.
+// accrual: Accrual amount to be updated for the order.
+// Returns an error if the update operation fails.
 func (orderDB *OrderModel) UpdateOrderStatus(
 	orderID string,
 	newStatus string,

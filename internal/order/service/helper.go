@@ -1,3 +1,5 @@
+// Package service provides functionalities for processing and updating
+// order statuses in the loyalty system.
 package service
 
 import (
@@ -9,12 +11,18 @@ import (
 	"github.com/levigross/grequests"
 )
 
+// OrderLoyaltyFormat defines the format for loyalty data associated with an order.
 type OrderLoyaltyFormat struct {
 	Order   string  `json:"order"`
 	Status  string  `json:"status"`
 	Accrual float64 `json:"accrual,omitempty"`
 }
 
+// UpdateOrderStatus updates the status of orders based on the response
+// from the accrual system. It queries the accrual system for each unprocessed order
+// and updates the order's status accordingly in the local system.
+// The function handles both successful accrual updates and cases where
+// the accrual system returns no content, marking such orders as "INVALID".
 func (ord *UserOrder) UpdateOrderStatus(accrualServerAddress string) error {
 	endpoint := fmt.Sprintf(config.AccrualSystemAddress, accrualServerAddress)
 
