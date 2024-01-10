@@ -6,19 +6,15 @@
 package main
 
 import (
-	"log"
-	"os"
-	"runtime"
+	"fmt"
 	"time"
-
-	p "net/http/pprof"
-	"runtime/pprof"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
+	p "net/http/pprof"
 
 	_ "github.com/elina-chertova/loyalty-system/docs"
 	"github.com/elina-chertova/loyalty-system/internal"
@@ -31,23 +27,15 @@ import (
 	"github.com/elina-chertova/loyalty-system/pkg/logger"
 )
 
+// main is the entry point for the Loyalty System application.
 func main() {
-	f, err := os.Create("profiles/base.pprof")
-	if err != nil {
-		log.Fatal("could not create memory profile: ", err)
-	}
-	defer f.Close()
-
 	if err := run(); err != nil {
+		fmt.Println("errors in", err.Error())
 		panic(err)
 	}
-	runtime.GC()
-	if err := pprof.WriteHeapProfile(f); err != nil {
-		log.Fatal("could not write memory profile: ", err)
-	}
-
 }
 
+// run initializes and starts the Loyalty System application.
 func run() error {
 	params := config.NewServer()
 	config.LoadEnv()
@@ -115,6 +103,8 @@ func run() error {
 	return nil
 }
 
+// updateOrderStatusLoop periodically checks and updates the status
+// of orders by communicating with the external accrual system.
 func updateOrderStatusLoop(order *ordService.UserOrder, accrualServerAddress string) {
 	err := order.UpdateOrderStatus(accrualServerAddress)
 	if err != nil {
@@ -122,6 +112,8 @@ func updateOrderStatusLoop(order *ordService.UserOrder, accrualServerAddress str
 	}
 }
 
+// updateBalanceLoop periodically updates user balances based on
+// the latest order accruals.
 func updateBalanceLoop(order *ordService.UserOrder, balance *balService.UserBalance) {
 	err := balance.UpdateBalance(order)
 	if err != nil {
@@ -130,6 +122,8 @@ func updateBalanceLoop(order *ordService.UserOrder, balance *balService.UserBala
 	}
 }
 
+// routerInit initializes and returns a new Gin engine instance,
+// setting up middleware and compression settings.
 func routerInit() *gin.Engine {
 	router := gin.Default()
 	router.Use(logger.GinLogger(logger.Logger))
@@ -137,6 +131,8 @@ func routerInit() *gin.Engine {
 	return router
 }
 
+// RegisterPprofRoutes sets up routes for pprof profiling.
+// It allows for monitoring and diagnosing the application's performance.
 func RegisterPprofRoutes(router *gin.Engine) {
 	router.GET("/debug/pprof/", gin.WrapF(p.Index))
 	router.GET("/debug/pprof/heap", gin.WrapF(p.Index))
