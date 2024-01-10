@@ -130,7 +130,7 @@ func (bal *UserBalance) WithdrawalInfo(token string) ([]WithdrawalFormat, error)
 		return nil, err
 	}
 
-	var newWithdrawals []WithdrawalFormat
+	newWithdrawals := make([]WithdrawalFormat, 0, len(withdrawals))
 	for _, w := range withdrawals {
 		newWithdrawals = append(
 			newWithdrawals, WithdrawalFormat{
@@ -165,12 +165,12 @@ func (bal *UserBalance) UpdateBalance(ord *service.UserOrder) error {
 		}
 
 		current := balance.Current + rows.SumAccrual
-		err = bal.balanceRep.UpdateBalance(
+
+		if err = bal.balanceRep.UpdateBalance(
 			rows.UserID,
 			current,
 			balance.Withdrawn,
-		)
-		if err != nil {
+		); err != nil {
 			return err
 		}
 
